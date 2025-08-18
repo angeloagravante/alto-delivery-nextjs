@@ -1,3 +1,4 @@
+
 # Alto Delivery - Next.js Delivery Platform
 
 A modern delivery service platform built with Next.js, TypeScript, and a comprehensive tech stack.
@@ -115,6 +116,7 @@ The project uses Prisma with MongoDB for data management:
 6. **Admin Panel**: Management interface for administrators
 
 ## Learn More About Next.js
+
 
 To learn more about Next.js, take a look at the following resources:
 

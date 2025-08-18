@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+
 import { ClerkProvider } from '@clerk/nextjs';
 import "./globals.css";
 
@@ -29,6 +30,7 @@ export default function RootLayout({
   }
 
   // Fallback for demo/development without Clerk
+
   return (
     <html lang="en">
       <body className="antialiased">
