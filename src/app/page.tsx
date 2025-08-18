@@ -3,7 +3,18 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 
 export default async function Home() {
-  const user = await currentUser()
+  // Only check user if Clerk is properly configured
+  const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+  const isClerkConfigured = clerkPublishableKey && clerkPublishableKey !== 'pk_test_demo_placeholder_for_build';
+  
+  let user = null;
+  if (isClerkConfigured) {
+    try {
+      user = await currentUser();
+    } catch {
+      // Handle Clerk errors gracefully - running in demo mode
+    }
+  }
   
   // If user is signed in, redirect to dashboard
   if (user) {

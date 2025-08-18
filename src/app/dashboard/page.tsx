@@ -1,9 +1,20 @@
-export default async function DashboardPage() {
+'use client'
+
+import { useRouter } from 'next/navigation'
+
+export default function DashboardPage() {
+  const router = useRouter()
+  
   // Note: In production, this would use real Clerk authentication
   const demoUser = {
     firstName: "Demo",
     emailAddresses: [{ emailAddress: "demo@altodelivery.com" }]
   };
+
+  const handleSignOut = () => {
+    // Demo sign out - redirect to home
+    router.push('/')
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -19,6 +30,12 @@ export default async function DashboardPage() {
               <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#1E466A] font-bold">
                 {demoUser.firstName?.charAt(0) || "D"}
               </div>
+              <button 
+                onClick={handleSignOut}
+                className="text-sm text-white hover:text-gray-200 transition-colors"
+              >
+                Sign Out
+              </button>
             </div>
           </div>
         </div>
