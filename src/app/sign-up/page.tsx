@@ -54,6 +54,8 @@ export default function Page() {
         
         <div className="bg-white p-8 rounded-lg shadow-md border border-gray-200">
           <SignUp 
+            afterSignUpUrl="/dashboard"
+            redirectUrl="/dashboard"
             appearance={{
               elements: {
                 formButtonPrimary: 'bg-[#1E466A] hover:bg-[#1E466A]/90',
