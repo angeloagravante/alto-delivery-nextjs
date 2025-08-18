@@ -1,20 +1,34 @@
-'use client'
+import { UserButton } from '@clerk/nextjs'
+import { currentUser } from '@clerk/nextjs/server'
+import { redirect } from 'next/navigation'
+import Link from 'next/link'
 
-import { useRouter } from 'next/navigation'
-
-export default function DashboardPage() {
-  const router = useRouter()
+export default async function DashboardPage() {
+  // Only check user if Clerk is properly configured
+  const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+  const isClerkConfigured = clerkPublishableKey && clerkPublishableKey !== 'pk_test_demo_placeholder_for_build';
   
-  // Note: In production, this would use real Clerk authentication
+  let user = null;
+  if (isClerkConfigured) {
+    try {
+      user = await currentUser();
+    } catch {
+      // Handle Clerk errors gracefully
+    }
+    
+    // If Clerk is configured but no user, redirect to sign-in
+    if (!user) {
+      redirect('/sign-in');
+    }
+  }
+  
+  // Demo user for when Clerk is not configured
   const demoUser = {
     firstName: "Demo",
     emailAddresses: [{ emailAddress: "demo@altodelivery.com" }]
   };
-
-  const handleSignOut = () => {
-    // Demo sign out - redirect to home
-    router.push('/')
-  }
+  
+  const displayUser = user || demoUser;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -26,16 +40,22 @@ export default function DashboardPage() {
               <h1 className="text-xl font-bold">Alto Delivery</h1>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-sm">Welcome, {demoUser.firstName || demoUser.emailAddresses[0].emailAddress}</span>
+              <span className="text-sm">
+                Welcome, {displayUser.firstName || displayUser.emailAddresses?.[0]?.emailAddress || 'User'}
+              </span>
               <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#1E466A] font-bold">
-                {demoUser.firstName?.charAt(0) || "D"}
+                {displayUser.firstName?.charAt(0) || "U"}
               </div>
-              <button 
-                onClick={handleSignOut}
-                className="text-sm text-white hover:text-gray-200 transition-colors"
-              >
-                Sign Out
-              </button>
+              {user ? (
+                <UserButton />
+              ) : (
+                <Link 
+                  href="/"
+                  className="text-sm text-white hover:text-gray-200 transition-colors"
+                >
+                  Sign Out
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -104,11 +124,13 @@ export default function DashboardPage() {
                 </div>
               </div>
               
-              <div className="mt-8 text-center text-xs text-gray-500">
-                <p>
-                  Note: This is a demo dashboard. In production, this would integrate with real user authentication and data.
-                </p>
-              </div>
+              {!user && (
+                <div className="mt-8 text-center text-xs text-gray-500">
+                  <p>
+                    Note: This is a demo dashboard. In production, this would integrate with real user authentication and data.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>

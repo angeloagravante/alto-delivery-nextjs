@@ -1,41 +1,28 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 
-export default function middleware(_request: NextRequest) {
+const isProtectedRoute = createRouteMatcher([
+  '/dashboard(.*)',
+])
+
+export default clerkMiddleware(async (auth, req) => {
   // Check if Clerk is properly configured
   const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
   const isClerkConfigured = clerkPublishableKey && clerkPublishableKey !== 'pk_test_demo_placeholder_for_build';
 
-  // If Clerk is not configured, allow all requests to pass through
+  // If Clerk is not configured, allow all requests to pass through (demo mode)
   if (!isClerkConfigured) {
-    return NextResponse.next();
+    return;
   }
 
-  // If Clerk is configured, we would normally handle authentication here
-  // For now, in demo mode, we still allow all requests to pass through
-  // In production, this is where you would uncomment the Clerk authentication logic
-  
-  /*
-  // When ready to enable authentication, replace the above logic with:
-  import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
-  
-  return clerkMiddleware(async (auth, req) => {
-    const isProtectedRoute = createRouteMatcher([
-      '/dashboard(.*)',
-    ])
-    
-    if (isProtectedRoute(req)) {
-      const { userId } = await auth()
-      if (!userId) {
-        const url = new URL('/sign-in', req.url)
-        return NextResponse.redirect(url)
-      }
+  // If Clerk is configured, protect the dashboard routes
+  if (isProtectedRoute(req)) {
+    const { userId } = await auth()
+    if (!userId) {
+      const url = new URL('/sign-in', req.url)
+      return Response.redirect(url)
     }
-  })(request, event);
-  */
-  
-  return NextResponse.next();
-}
+  }
+})
 
 export const config = {
   matcher: [
