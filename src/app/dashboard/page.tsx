@@ -21,7 +21,16 @@ export default async function DashboardPage() {
     }
   }
   
-  // Note: user info not displayed on this page; header handles display
+  // Demo user for when Clerk is not configured
+  const demoUser = {
+    firstName: "Demo",
+    emailAddresses: [{ emailAddress: "demo@altodelivery.com" }]
+  };
+  
+  // Use displayUser for potential future features (currently used in demo mode)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const displayUser = user || demoUser;
+  // Note: displayUser reserved for future dashboard personalization features
 
   // Demo data for now; replace with real data source later
   const newOrders: DetailedOrder[] = [
