@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { Store } from '@/types/store'
 import { ChevronDownIcon } from '@heroicons/react/24/outline'
+import { useAuth } from '@clerk/nextjs'
 
 interface StoreMenuProps {
   onStoreChange: (store: Store | null) => void
@@ -14,16 +15,36 @@ export default function StoreMenu({ onStoreChange }: StoreMenuProps) {
   const [selectedStore, setSelectedStore] = useState<Store | null>(null)
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const { isSignedIn, isLoaded } = useAuth()
 
   useEffect(() => {
-    fetchStores()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+    // Wait for authentication to be loaded and user to be signed in
+    if (isLoaded && isSignedIn) {
+      // Add a small delay to ensure Clerk is fully ready
+      const timer = setTimeout(() => {
+        fetchStores()
+      }, 500)
+      
+      return () => clearTimeout(timer)
+    } else if (isLoaded && !isSignedIn) {
+      setLoading(false)
+      setError('Not authenticated')
+    }
+  }, [isLoaded, isSignedIn]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchStores = async () => {
     try {
+      setLoading(true)
+      setError(null)
+      console.log('Fetching stores...')
+      
       const response = await fetch('/api/stores')
+      console.log('Stores API response status:', response.status)
+      
       if (response.ok) {
         const storesData = await response.json()
+        console.log('Stores data received:', storesData)
         setStores(storesData)
         
         // Set the first store as selected by default
@@ -31,9 +52,14 @@ export default function StoreMenu({ onStoreChange }: StoreMenuProps) {
           setSelectedStore(storesData[0])
           onStoreChange(storesData[0])
         }
+      } else {
+        const errorData = await response.json()
+        console.error('Stores API error:', errorData)
+        setError(errorData.error || `HTTP ${response.status}`)
       }
     } catch (error) {
       console.error('Error fetching stores:', error)
+      setError('Network error')
     } finally {
       setLoading(false)
     }
@@ -45,11 +71,42 @@ export default function StoreMenu({ onStoreChange }: StoreMenuProps) {
     setIsOpen(false)
   }
 
+  if (!isLoaded) {
+    return (
+      <div className="flex items-center gap-2 px-3 py-2 text-white">
+        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+        <span className="text-sm">Loading auth...</span>
+      </div>
+    )
+  }
+
+  if (!isSignedIn) {
+    return (
+      <div className="flex items-center gap-2 px-3 py-2 text-white">
+        <span className="text-sm text-red-200">Not signed in</span>
+      </div>
+    )
+  }
+
   if (loading) {
     return (
       <div className="flex items-center gap-2 px-3 py-2 text-white">
         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-        <span className="text-sm">Loading...</span>
+        <span className="text-sm">Loading stores...</span>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center gap-2 px-3 py-2 text-white">
+        <span className="text-sm text-red-200">Error: {error}</span>
+        <button 
+          onClick={fetchStores}
+          className="text-xs bg-white/20 px-2 py-1 rounded hover:bg-white/30"
+        >
+          Retry
+        </button>
       </div>
     )
   }
@@ -58,6 +115,12 @@ export default function StoreMenu({ onStoreChange }: StoreMenuProps) {
     return (
       <div className="flex items-center gap-2 px-3 py-2 text-white">
         <span className="text-sm">No stores</span>
+        <button 
+          onClick={() => window.location.href = '/dashboard/stores'}
+          className="text-xs bg-white/20 px-2 py-1 rounded hover:bg-white/30"
+        >
+          Create Store
+        </button>
       </div>
     )
   }
@@ -112,7 +175,7 @@ export default function StoreMenu({ onStoreChange }: StoreMenuProps) {
                       {store.name.charAt(0).toUpperCase()}
                     </span>
                   </div>
-                )}
+            )}
                 <div className="flex-1 min-w-0">
                   <div className="font-medium truncate">{store.name}</div>
                   {store.description && (

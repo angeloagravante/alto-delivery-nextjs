@@ -5,6 +5,10 @@ const isProtectedRoute = createRouteMatcher([
   '/dashboard(.*)',
 ])
 
+const isApiRoute = createRouteMatcher([
+  '/api(.*)',
+])
+
 // Check if Clerk is properly configured
 const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 const isClerkConfigured = clerkPublishableKey && clerkPublishableKey !== 'pk_test_demo_placeholder_for_build';
@@ -12,7 +16,8 @@ const isClerkConfigured = clerkPublishableKey && clerkPublishableKey !== 'pk_tes
 // Create the middleware function conditionally
 export default isClerkConfigured 
   ? clerkMiddleware(async (auth, req) => {
-      if (isProtectedRoute(req)) {
+      // Only protect dashboard routes, not API routes
+      if (isProtectedRoute(req) && !isApiRoute(req)) {
         const { userId } = await auth()
         if (!userId) {
           const url = new URL('/sign-in', req.url)
