@@ -2,6 +2,7 @@
 
 import type { Order } from './OrdersTable'
 import { formatCurrency } from '@/lib/currency'
+import type { DetailedOrder } from './DashboardMain'
 
 type NewOrdersModalProps = {
   open: boolean
@@ -66,7 +67,7 @@ export default function NewOrdersModal({ open, onClose, orders }: NewOrdersModal
                   <p className="text-sm text-gray-700">
                     Total: <span className="font-semibold">{formatCurrency(order.totalAmount)}</span>
                   </p>
-                  <p className="text-xs text-gray-500">Created {new Date(order.createdAt).toLocaleString()}</p>
+                  <p className="text-xs text-gray-500">Created {formatDate(order)}</p>
                 </div>
               </li>
             ))}
@@ -81,3 +82,10 @@ export default function NewOrdersModal({ open, onClose, orders }: NewOrdersModal
 }
 
 
+function formatDate(order: DetailedOrder | Order) {
+  const ts = (order as DetailedOrder).timestamp
+  const createdAt = (order as DetailedOrder).createdAt
+  const d = ts ? new Date(ts) : (createdAt ? new Date(createdAt) : null)
+  if (!d) return '-'
+  return d.toLocaleString('en-PH', { dateStyle: 'medium', timeStyle: 'short' })
+}

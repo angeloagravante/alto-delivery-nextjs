@@ -5,10 +5,12 @@ import Dashboard, { type DashboardMetrics } from './Dashboard'
 import OrdersTable, { Order } from './OrdersTable'
 import NewOrdersModal from './NewOrdersModal'
 import OrderDetailsModal from './OrderDetailsModal'
+import TransactionList from './TransactionList'
 import { useMemo, useState } from 'react'
 
 export type DetailedOrder = Order & {
   items?: { name: string; quantity: number; price: number }[]
+  deliveryFee?: number
 }
 
 type DashboardMainProps = {
@@ -60,6 +62,8 @@ export default function DashboardMain({ newOrders, inProgressOrders, completedOr
         orders={completedOrders}
         onRowClick={(o) => setSelectedOrder(o as DetailedOrder)}
       />
+
+      <TransactionList title="Recent Transactions" transactions={[...newOrders, ...inProgressOrders, ...completedOrders].slice(0, 6)} />
     </div>
   )
 }

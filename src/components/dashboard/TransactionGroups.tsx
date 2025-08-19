@@ -11,8 +11,6 @@ type Props = {
 }
 
 export default function TransactionGroups({ transactions }: Props) {
-  const [pageInProgress, setPageInProgress] = useState(1)
-  const [pageDelivered, setPageDelivered] = useState(1)
   const [selected, setSelected] = useState<DetailedOrder | null>(null)
 
   const groups = useMemo(() => {

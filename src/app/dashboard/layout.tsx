@@ -1,4 +1,3 @@
-import { UserButton } from '@clerk/nextjs'
 import { currentUser } from '@clerk/nextjs/server'
 import DashboardHeader from '@/components/dashboard/DashboardHeader'
 
@@ -10,7 +9,7 @@ export default async function DashboardLayout({
   const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
   const isClerkConfigured = clerkPublishableKey && clerkPublishableKey !== 'pk_test_demo_placeholder_for_build';
 
-  let user: any = null;
+  let user: { firstName?: string | null } | null = null;
   if (isClerkConfigured) {
     try {
       user = await currentUser();
