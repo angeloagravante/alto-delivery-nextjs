@@ -16,7 +16,7 @@ export async function PUT(
 
     const { id } = await params
     const body: UpdateStoreData = await request.json()
-    const { name, description, logoUrl } = body
+    const { name, description, logoUrl, storeType, village, phaseNumber, blockNumber, lotNumber } = body
 
     // First find the user by clerkId
     const user = await prisma.user.findUnique({
@@ -43,12 +43,31 @@ export async function PUT(
       )
     }
 
+    if (storeType !== undefined && storeType.trim().length === 0) {
+      return NextResponse.json(
+        { error: 'Store type cannot be empty' }, 
+        { status: 400 }
+      )
+    }
+
+    if (village !== undefined && village.trim().length === 0) {
+      return NextResponse.json(
+        { error: 'Village cannot be empty' }, 
+        { status: 400 }
+      )
+    }
+
     const updatedStore = await prisma.store.update({
       where: { id },
       data: {
         ...(name !== undefined && { name: name.trim() }),
         ...(description !== undefined && { description: description.trim() }),
-        ...(logoUrl !== undefined && { logoUrl })
+        ...(logoUrl !== undefined && { logoUrl }),
+        ...(storeType !== undefined && { storeType: storeType.trim() }),
+        ...(village !== undefined && { village: village.trim() }),
+        ...(phaseNumber !== undefined && { phaseNumber: phaseNumber.trim() }),
+        ...(blockNumber !== undefined && { blockNumber: blockNumber.trim() }),
+        ...(lotNumber !== undefined && { lotNumber: lotNumber.trim() })
       }
     })
 

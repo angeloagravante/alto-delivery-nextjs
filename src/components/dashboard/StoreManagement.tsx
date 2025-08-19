@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { Store, CreateStoreData } from '@/types/store'
 import { useUploadThing } from '@/lib/uploadthing'
+import { useStore } from '@/components/dashboard/DashboardWrapper'
 
 interface StoreManagementProps {
   onStoreChange: () => void
@@ -16,10 +17,31 @@ export default function StoreManagement({ onStoreChange }: StoreManagementProps)
   const [loading, setLoading] = useState(true)
   const [formData, setFormData] = useState<CreateStoreData>({
     name: '',
-    description: ''
+    description: '',
+    storeType: '',
+    village: '',
+    phaseNumber: '',
+    blockNumber: '',
+    lotNumber: ''
   })
   const [logoUrl, setLogoUrl] = useState<string>('')
+  const [formReady, setFormReady] = useState(false)
   const { startUpload, isUploading } = useUploadThing('storeLogo')
+  const { refreshStores } = useStore()
+
+  const storeTypes = [
+    'Restaurant',
+    'Grocery',
+    'Clothing',
+    'Electronics',
+    'Pharmacy',
+    'Hardware',
+    'Beauty & Wellness',
+    'Sports & Fitness',
+    'Bookstore',
+    'Pet Store',
+    'Other'
+  ]
 
   useEffect(() => {
     fetchStores()
@@ -43,8 +65,10 @@ export default function StoreManagement({ onStoreChange }: StoreManagementProps)
     e.preventDefault()
     
     try {
+      // Ensure all form data values are strings before submission
+      const sanitizedFormData = ensureStringValues(formData)
       const storeData = {
-        ...formData,
+        ...sanitizedFormData,
         logoUrl: logoUrl || undefined
       }
 
@@ -60,6 +84,7 @@ export default function StoreManagement({ onStoreChange }: StoreManagementProps)
       if (response.ok) {
         await fetchStores()
         onStoreChange()
+        refreshStores() // Notify other components that stores changed
         resetForm()
         setIsAddModalOpen(false)
         setEditingStore(null)
@@ -86,6 +111,7 @@ export default function StoreManagement({ onStoreChange }: StoreManagementProps)
       if (response.ok) {
         await fetchStores()
         onStoreChange()
+        refreshStores() // Notify other components that stores changed
       } else {
         const error = await response.json()
         alert(error.error || 'An error occurred')
@@ -98,16 +124,32 @@ export default function StoreManagement({ onStoreChange }: StoreManagementProps)
 
   const handleEdit = (store: Store) => {
     setEditingStore(store)
-    setFormData({
+    setFormData(ensureStringValues({
       name: store.name,
-      description: store.description || ''
-    })
+      description: store.description,
+      storeType: store.storeType,
+      village: store.village,
+      phaseNumber: store.phaseNumber,
+      blockNumber: store.blockNumber,
+      lotNumber: store.lotNumber
+    }))
     setLogoUrl(store.logoUrl || '')
     setIsAddModalOpen(true)
   }
 
+  // Helper function to ensure all form values are strings
+  const ensureStringValues = (data: Partial<CreateStoreData>): CreateStoreData => ({
+    name: data.name || '',
+    description: data.description || '',
+    storeType: data.storeType || '',
+    village: data.village || '',
+    phaseNumber: data.phaseNumber || '',
+    blockNumber: data.blockNumber || '',
+    lotNumber: data.lotNumber || ''
+  })
+
   const resetForm = () => {
-    setFormData({ name: '', description: '' })
+    setFormData(ensureStringValues({}))
     setLogoUrl('')
   }
 
@@ -116,6 +158,20 @@ export default function StoreManagement({ onStoreChange }: StoreManagementProps)
     setEditingStore(null)
     setIsAddModalOpen(true)
   }
+
+  // Ensure form data is properly initialized when modal opens
+  useEffect(() => {
+    if (isAddModalOpen && !editingStore) {
+      // For new stores, ensure all fields are empty strings
+      setFormData(ensureStringValues({}))
+      setLogoUrl('')
+      setFormReady(true)
+    } else if (isAddModalOpen && editingStore) {
+      setFormReady(true)
+    } else {
+      setFormReady(false)
+    }
+  }, [isAddModalOpen, editingStore])
 
   if (loading) {
     return (
@@ -170,8 +226,13 @@ export default function StoreManagement({ onStoreChange }: StoreManagementProps)
                 )}
                 <div>
                   <h3 className="font-semibold text-gray-900">{store.name}</h3>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      {store.storeType}
+                    </span>
+                  </div>
                   {store.description && (
-                    <p className="text-sm text-gray-600">{store.description}</p>
+                    <p className="text-sm text-gray-600 mt-1">{store.description}</p>
                   )}
                 </div>
               </div>
@@ -190,7 +251,33 @@ export default function StoreManagement({ onStoreChange }: StoreManagementProps)
                 </button>
               </div>
             </div>
-            <div className="text-xs text-gray-500">
+            
+            {/* Store Address Information */}
+            <div className="mt-4 space-y-2">
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span className="font-medium">{store.village}</span>
+              </div>
+              
+              {(store.phaseNumber || store.blockNumber || store.lotNumber) && (
+                <div className="flex items-center gap-3 text-xs text-gray-500">
+                  {store.phaseNumber && (
+                    <span>Phase {store.phaseNumber}</span>
+                  )}
+                  {store.blockNumber && (
+                    <span>Block {store.blockNumber}</span>
+                  )}
+                  {store.lotNumber && (
+                    <span>Lot {store.lotNumber}</span>
+                  )}
+                </div>
+              )}
+            </div>
+            
+            <div className="text-xs text-gray-500 mt-4">
               Created {new Date(store.createdAt).toLocaleDateString()}
             </div>
           </div>
@@ -200,18 +287,25 @@ export default function StoreManagement({ onStoreChange }: StoreManagementProps)
       {isAddModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-            <h3 className="text-lg font-semibold mb-4">
-              {editingStore ? 'Edit Store' : 'Add New Store'}
-            </h3>
-            
-            <form onSubmit={handleSubmit} className="space-y-4">
+            {!formReady ? (
+              <div className="flex items-center justify-center p-8">
+                <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                <span className="ml-3 text-gray-600">Loading form...</span>
+              </div>
+            ) : (
+              <>
+                <h3 className="text-lg font-semibold mb-4">
+                  {editingStore ? 'Edit Store' : 'Add New Store'}
+                </h3>
+                
+                <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Store Name *
                 </label>
                 <input
                   type="text"
-                  value={formData.name}
+                  value={formData.name || ''}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter store name"
@@ -224,12 +318,82 @@ export default function StoreManagement({ onStoreChange }: StoreManagementProps)
                   Description
                 </label>
                 <textarea
-                  value={formData.description}
+                  value={formData.description || ''}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter store description"
                   rows={3}
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Store Type *
+                </label>
+                <select
+                  value={formData.storeType || ''}
+                  onChange={(e) => setFormData({ ...formData, storeType: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="">Select store type</option>
+                  {storeTypes.map(type => (
+                    <option key={type} value={type}>{type}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Village *
+                </label>
+                <input
+                  type="text"
+                  value={formData.village || ''}
+                  onChange={(e) => setFormData({ ...formData, village: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter village name"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Phase Number
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.phaseNumber || ''}
+                    onChange={(e) => setFormData({ ...formData, phaseNumber: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Phase"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Block Number
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.blockNumber || ''}
+                    onChange={(e) => setFormData({ ...formData, blockNumber: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Block"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Lot Number
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.lotNumber || ''}
+                    onChange={(e) => setFormData({ ...formData, lotNumber: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Lot"
+                  />
+                </div>
               </div>
 
               <div>
@@ -292,6 +456,8 @@ export default function StoreManagement({ onStoreChange }: StoreManagementProps)
                 </button>
               </div>
             </form>
+              </>
+            )}
           </div>
         </div>
       )}

@@ -7,6 +7,7 @@ import DashboardHeader from './DashboardHeader'
 interface StoreContextType {
   currentStore: Store | null
   setCurrentStore: (store: Store | null) => void
+  refreshStores: () => void
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined)
@@ -33,11 +34,19 @@ export default function DashboardWrapper({ children, displayFirstName, showUserB
     // You can add additional logic here like updating context, localStorage, etc.
     if (currentStore !== store) {
       console.log('Current store changed to:', store?.name || 'None')
+      console.log('Store ID:', store?.id || 'None')
     }
   }
 
+  const refreshStores = () => {
+    // This will trigger a refresh in components that use the store context
+    console.log('Refreshing stores...')
+    // Force a re-render by updating the current store
+    setCurrentStore(prev => prev ? { ...prev } : null)
+  }
+
   return (
-    <StoreContext.Provider value={{ currentStore, setCurrentStore }}>
+    <StoreContext.Provider value={{ currentStore, setCurrentStore, refreshStores }}>
       <div className="min-h-screen bg-gray-50">
         <DashboardHeader 
           displayFirstName={displayFirstName} 

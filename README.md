@@ -115,6 +115,28 @@ CLERK_WEBHOOK_SECRET=your_webhook_secret_here
 
 ## 🚨 Troubleshooting
 
+### Image Loading Issues
+If you see "hostname not configured" errors for images:
+
+1. **Add new image domains** to `next.config.ts`:
+   ```typescript
+   images: {
+     remotePatterns: [
+       {
+         protocol: 'https',
+         hostname: 'your-domain.com',
+         port: '',
+         pathname: '/**',
+       },
+     ],
+   }
+   ```
+
+2. **Restart development server** after config changes:
+   ```bash
+   npm run dev
+   ```
+
 ### Store Dropdown Not Working
 If the store dropdown shows "No stores" or doesn't load:
 

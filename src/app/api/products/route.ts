@@ -2,12 +2,20 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const { userId } = await auth()
     
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Get storeId from query parameters
+    const { searchParams } = new URL(request.url)
+    const storeId = searchParams.get('storeId')
+
+    if (!storeId) {
+      return NextResponse.json({ error: 'Store ID is required' }, { status: 400 })
     }
 
     // First find the user by clerkId
@@ -19,12 +27,25 @@ export async function GET() {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    // Get products from stores owned by the user
+    // Verify the store exists and belongs to the user
+    const store = await prisma.store.findFirst({
+      where: { 
+        id: storeId,
+        userId: user.id
+      }
+    })
+
+    if (!store) {
+      return NextResponse.json(
+        { error: 'Store not found or access denied' },
+        { status: 404 }
+      )
+    }
+
+    // Get products from the specific store
     const products = await prisma.product.findMany({
       where: {
-        store: {
-          userId: user.id
-        }
+        storeId: storeId
       },
       include: {
         store: {

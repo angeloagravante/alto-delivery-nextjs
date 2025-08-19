@@ -18,9 +18,11 @@ export default function ProductsPage() {
     
     try {
       setLoading(true)
-      const response = await fetch('/api/products')
+      console.log('Fetching products for store:', currentStore.name, 'ID:', currentStore.id)
+      const response = await fetch(`/api/products?storeId=${currentStore.id}`)
       if (response.ok) {
         const data = await response.json()
+        console.log('Products received:', data)
         setProducts(data)
       } else {
         console.error('Failed to fetch products')

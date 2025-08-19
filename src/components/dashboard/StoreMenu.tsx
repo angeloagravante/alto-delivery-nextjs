@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { Store } from '@/types/store'
 import { ChevronDownIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '@clerk/nextjs'
+import { useStore } from '@/components/dashboard/DashboardWrapper'
 
 interface StoreMenuProps {
   onStoreChange: (store: Store | null) => void
@@ -17,6 +18,7 @@ export default function StoreMenu({ onStoreChange }: StoreMenuProps) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const { isSignedIn, isLoaded } = useAuth()
+  const { currentStore, refreshStores } = useStore()
 
   useEffect(() => {
     // Wait for authentication to be loaded and user to be signed in
@@ -49,6 +51,7 @@ export default function StoreMenu({ onStoreChange }: StoreMenuProps) {
         
         // Set the first store as selected by default
         if (storesData.length > 0) {
+          console.log('Setting default store:', storesData[0].name, 'ID:', storesData[0].id)
           setSelectedStore(storesData[0])
           onStoreChange(storesData[0])
         }
@@ -66,10 +69,31 @@ export default function StoreMenu({ onStoreChange }: StoreMenuProps) {
   }
 
   const handleStoreSelect = (store: Store) => {
+    console.log('Store selected:', store.name, 'ID:', store.id)
     setSelectedStore(store)
     onStoreChange(store)
     setIsOpen(false)
   }
+
+  // Check if selected store still exists in the stores list
+  useEffect(() => {
+    if (selectedStore && stores.length > 0) {
+      const storeExists = stores.find(store => store.id === selectedStore.id)
+      if (!storeExists) {
+        console.log('Selected store no longer exists, refreshing...')
+        // If selected store was deleted, refresh and select first available store
+        fetchStores()
+      }
+    }
+  }, [stores, selectedStore])
+
+  // Listen for store context changes and refresh stores list
+  useEffect(() => {
+    if (currentStore !== selectedStore) {
+      console.log('Store context changed, refreshing stores...')
+      fetchStores()
+    }
+  }, [currentStore])
 
   if (!isLoaded) {
     return (
@@ -178,9 +202,19 @@ export default function StoreMenu({ onStoreChange }: StoreMenuProps) {
             )}
                 <div className="flex-1 min-w-0">
                   <div className="font-medium truncate">{store.name}</div>
-                  {store.description && (
-                    <div className="text-sm text-gray-500 truncate">{store.description}</div>
-                  )}
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      {store.storeType}
+                    </span>
+                  </div>
+                  <div className="text-sm text-gray-500 truncate mt-1">
+                    {store.village}
+                    {(store.phaseNumber || store.blockNumber || store.lotNumber) && (
+                      <span className="ml-1">
+                        • {[store.phaseNumber, store.blockNumber, store.lotNumber].filter(Boolean).join(', ')}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </button>
             ))}

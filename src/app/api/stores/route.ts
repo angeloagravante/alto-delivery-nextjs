@@ -30,6 +30,12 @@ export async function GET() {
         console.log('Created user in database:', user)
       } catch (error) {
         console.error('Error creating user:', error)
+        // Check if it's a MongoDB replica set error
+        if (error instanceof Error && error.message.includes('replica set')) {
+          return NextResponse.json({ 
+            error: 'Database configuration issue. Please contact support.' 
+          }, { status: 500 })
+        }
         return NextResponse.json({ error: 'User not found and could not be created' }, { status: 404 })
       }
     }
@@ -46,6 +52,12 @@ export async function GET() {
     return NextResponse.json(stores)
   } catch (error) {
     console.error('Error fetching stores:', error)
+    // Check if it's a MongoDB replica set error
+    if (error instanceof Error && error.message.includes('replica set')) {
+      return NextResponse.json({ 
+        error: 'Database configuration issue. Please contact support.' 
+      }, { status: 500 })
+    }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -77,6 +89,12 @@ export async function POST(request: NextRequest) {
         console.log('Created user in database:', user)
       } catch (error) {
         console.error('Error creating user:', error)
+        // Check if it's a MongoDB replica set error
+        if (error instanceof Error && error.message.includes('replica set')) {
+          return NextResponse.json({ 
+            error: 'Database configuration issue. Please contact support.' 
+          }, { status: 500 })
+        }
         return NextResponse.json({ error: 'User not found and could not be created' }, { status: 404 })
       }
     }
@@ -98,11 +116,25 @@ export async function POST(request: NextRequest) {
     }
 
     const body: CreateStoreData = await request.json()
-    const { name, description, logoUrl } = body
+    const { name, description, logoUrl, storeType, village, phaseNumber, blockNumber, lotNumber } = body
 
     if (!name || name.trim().length === 0) {
       return NextResponse.json(
         { error: 'Store name is required' }, 
+        { status: 400 }
+      )
+    }
+
+    if (!storeType || storeType.trim().length === 0) {
+      return NextResponse.json(
+        { error: 'Store type is required' }, 
+        { status: 400 }
+      )
+    }
+
+    if (!village || village.trim().length === 0) {
+      return NextResponse.json(
+        { error: 'Village is required' }, 
         { status: 400 }
       )
     }
@@ -112,6 +144,11 @@ export async function POST(request: NextRequest) {
         name: name.trim(),
         description: description?.trim(),
         logoUrl,
+        storeType: storeType.trim(),
+        village: village.trim(),
+        phaseNumber: phaseNumber?.trim() || '',
+        blockNumber: blockNumber?.trim() || '',
+        lotNumber: lotNumber?.trim() || '',
         userId: user.id
       }
     })
@@ -119,6 +156,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(store, { status: 201 })
   } catch (error) {
     console.error('Error creating store:', error)
+    // Check if it's a MongoDB replica set error
+    if (error instanceof Error && error.message.includes('replica set')) {
+      return NextResponse.json({ 
+        error: 'Database configuration issue. Please contact support.' 
+      }, { status: 500 })
+    }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
