@@ -6,8 +6,10 @@ import { CreateStoreData } from '@/types/store'
 export async function GET() {
   try {
     const { userId } = await auth()
+    console.log('GET /api/stores - Auth userId:', userId)
     
     if (!userId) {
+      console.log('GET /api/stores - No userId from auth')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -15,10 +17,12 @@ export async function GET() {
     let user = await prisma.user.findUnique({
       where: { clerkId: userId }
     })
+    console.log('GET /api/stores - User lookup result:', user ? 'found' : 'not found')
 
     // If user doesn't exist, create them (fallback for when webhook isn't configured)
     if (!user) {
       try {
+        console.log('GET /api/stores - Creating new user for clerkId:', userId)
         // Create user in database with basic info
         user = await prisma.user.create({
           data: {
@@ -27,9 +31,9 @@ export async function GET() {
             name: 'User', // Temporary name, will be updated by webhook
           }
         })
-        console.log('Created user in database:', user)
+        console.log('GET /api/stores - Successfully created user:', user.id)
       } catch (error) {
-        console.error('Error creating user:', error)
+        console.error('GET /api/stores - Error creating user:', error)
         // Check if it's a MongoDB replica set error
         if (error instanceof Error && error.message.includes('replica set')) {
           return NextResponse.json({ 
@@ -41,17 +45,20 @@ export async function GET() {
     }
 
     if (!user) {
+      console.log('GET /api/stores - User still not found after creation attempt')
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
+    console.log('GET /api/stores - Fetching stores for user:', user.id)
     const stores = await prisma.store.findMany({
       where: { userId: user.id },
       orderBy: { createdAt: 'desc' }
     })
+    console.log('GET /api/stores - Found stores:', stores.length)
 
     return NextResponse.json(stores)
   } catch (error) {
-    console.error('Error fetching stores:', error)
+    console.error('GET /api/stores - Error fetching stores:', error)
     // Check if it's a MongoDB replica set error
     if (error instanceof Error && error.message.includes('replica set')) {
       return NextResponse.json({ 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Image from 'next/image'
 import { Store } from '@/types/store'
 import { ChevronDownIcon } from '@heroicons/react/24/outline'
@@ -19,9 +19,17 @@ export default function StoreMenu({ onStoreChange }: StoreMenuProps) {
   const [error, setError] = useState<string | null>(null)
   const { isSignedIn, isLoaded } = useAuth()
   const { currentStore } = useStore()
+  const isFetchingRef = useRef(false)
 
   const fetchStores = useCallback(async () => {
+    // Prevent multiple simultaneous API calls
+    if (isFetchingRef.current) {
+      console.log('Already fetching stores, skipping...')
+      return
+    }
+    
     try {
+      isFetchingRef.current = true
       setLoading(true)
       setError(null)
       console.log('Fetching stores...')
@@ -50,6 +58,7 @@ export default function StoreMenu({ onStoreChange }: StoreMenuProps) {
       setError('Network error')
     } finally {
       setLoading(false)
+      isFetchingRef.current = false
     }
   }, [onStoreChange])
 
@@ -66,7 +75,7 @@ export default function StoreMenu({ onStoreChange }: StoreMenuProps) {
       setLoading(false)
       setError('Not authenticated')
     }
-  }, [isLoaded, isSignedIn, fetchStores])
+  }, [isLoaded, isSignedIn]) // Removed fetchStores dependency
 
   const handleStoreSelect = (store: Store) => {
     console.log('Store selected:', store.name, 'ID:', store.id)
@@ -85,7 +94,7 @@ export default function StoreMenu({ onStoreChange }: StoreMenuProps) {
         fetchStores()
       }
     }
-  }, [stores, selectedStore, fetchStores])
+  }, [stores, selectedStore]) // Removed fetchStores dependency
 
   // Listen for store context changes and refresh stores list
   useEffect(() => {
@@ -93,7 +102,7 @@ export default function StoreMenu({ onStoreChange }: StoreMenuProps) {
       console.log('Store context changed, refreshing stores...')
       fetchStores()
     }
-  }, [currentStore, fetchStores, selectedStore])
+  }, [currentStore, selectedStore]) // Removed fetchStores dependency
 
   if (!isLoaded) {
     return (
