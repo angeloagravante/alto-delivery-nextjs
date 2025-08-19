@@ -1,4 +1,4 @@
-import { SignIn } from '@clerk/nextjs'
+import { SignUp } from '@clerk/nextjs'
 import Link from 'next/link'
 
 export default function Page() {
@@ -13,7 +13,7 @@ export default function Page() {
         <div className="max-w-md w-full space-y-8">
           <div className="text-center">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Welcome to Alto Delivery
+              Join Alto Delivery
             </h1>
             <p className="text-gray-600">
               Demo Mode - Clerk authentication not configured
@@ -23,20 +23,14 @@ export default function Page() {
           <div className="bg-white p-8 rounded-lg shadow-md border border-gray-200">
             <div className="text-center">
               <p className="text-gray-600 mb-4">
-                To enable authentication, configure your Clerk environment variables:
+                To enable user registration, configure your Clerk environment variables.
               </p>
-              <ul className="text-sm text-gray-500 text-left space-y-1">
-                <li>• NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY</li>
-                <li>• CLERK_SECRET_KEY</li>
-                <li>• NEXT_PUBLIC_CLERK_SIGN_IN_URL</li>
-                <li>• NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL</li>
-              </ul>
               <div className="mt-6">
                 <Link 
-                  href="/dashboard"
+                  href="/sign-in"
                   className="bg-[#1E466A] text-white px-6 py-2 rounded-lg hover:bg-[#1E466A]/90 transition-colors"
                 >
-                  Continue to Demo Dashboard
+                  Go to Sign In
                 </Link>
               </div>
             </div>
@@ -51,16 +45,17 @@ export default function Page() {
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome to Alto Delivery
+            Join Alto Delivery
           </h1>
           <p className="text-gray-600">
-            Sign in to access your delivery dashboard
+            Create your account to start using our delivery services
           </p>
         </div>
         
         <div className="bg-white p-8 rounded-lg shadow-md border border-gray-200">
-          <SignIn 
-            afterSignInUrl="/dashboard"
+          <SignUp 
+            routing="path"
+            afterSignUpUrl="/dashboard"
             redirectUrl="/dashboard"
             appearance={{
               elements: {
@@ -74,3 +69,5 @@ export default function Page() {
     </div>
   )
 }
+
+
