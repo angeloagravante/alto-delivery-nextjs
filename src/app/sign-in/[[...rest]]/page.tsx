@@ -61,6 +61,7 @@ export default function Page() {
         <div className="bg-white p-8 rounded-lg shadow-md border border-gray-200">
           <SignIn 
             routing="path"
+            path="/sign-in"
             afterSignInUrl="/dashboard"
             redirectUrl="/dashboard"
             appearance={{
