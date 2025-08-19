@@ -4,6 +4,7 @@ import OverviewCards from './OverviewCards'
 import Dashboard, { type DashboardMetrics } from './Dashboard'
 import OrdersTable, { Order } from './OrdersTable'
 import NewOrdersModal from './NewOrdersModal'
+import OrderDetailsModal from './OrderDetailsModal'
 import { useMemo, useState } from 'react'
 
 export type DetailedOrder = Order & {
@@ -19,6 +20,7 @@ type DashboardMainProps = {
 
 export default function DashboardMain({ newOrders, inProgressOrders, completedOrders, showLegacyOverview = false }: DashboardMainProps) {
   const [showNewOrders, setShowNewOrders] = useState(false)
+  const [selectedOrder, setSelectedOrder] = useState<DetailedOrder | null>(null)
 
   const revenue = useMemo(() => {
     return completedOrders.reduce((sum, o) => sum + o.totalAmount, 0)
@@ -46,9 +48,18 @@ export default function DashboardMain({ newOrders, inProgressOrders, completedOr
       )}
 
       <NewOrdersModal open={showNewOrders} onClose={() => setShowNewOrders(false)} orders={newOrders} />
+      <OrderDetailsModal open={Boolean(selectedOrder)} onClose={() => setSelectedOrder(null)} order={selectedOrder} />
 
-      <OrdersTable title="In Progress Orders" orders={inProgressOrders} />
-      <OrdersTable title="Completed Orders" orders={completedOrders} />
+      <OrdersTable
+        title="In Progress Orders"
+        orders={inProgressOrders}
+        onRowClick={(o) => setSelectedOrder(o as DetailedOrder)}
+      />
+      <OrdersTable
+        title="Completed Orders"
+        orders={completedOrders}
+        onRowClick={(o) => setSelectedOrder(o as DetailedOrder)}
+      />
     </div>
   )
 }

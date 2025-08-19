@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useState } from 'react'
 import { UserButton } from '@clerk/nextjs'
 
@@ -18,7 +19,9 @@ export default function DashboardHeader({ displayFirstName, showUserButton }: Da
         <div className="flex items-center justify-between h-16">
           {/* Left: Logo */}
           <div className="flex items-center">
-            <Link href="/dashboard" className="text-lg sm:text-xl font-bold">Alto Delivery</Link>
+            <Link href="/dashboard" className="flex items-center gap-2">
+              <Image src="/logo-white.svg" alt="Alto Delivery" width={120} height={36} priority />
+            </Link>
           </div>
 
           {/* Desktop center links */}
