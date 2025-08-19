@@ -4,13 +4,16 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useState } from 'react'
 import { UserButton } from '@clerk/nextjs'
+import StoreMenu from './StoreMenu'
+import { Store } from '@/types/store'
 
 type DashboardHeaderProps = {
   displayFirstName: string
   showUserButton: boolean
+  onStoreChange?: (store: Store | null) => void
 }
 
-export default function DashboardHeader({ displayFirstName, showUserButton }: DashboardHeaderProps) {
+export default function DashboardHeader({ displayFirstName, showUserButton, onStoreChange }: DashboardHeaderProps) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -29,10 +32,12 @@ export default function DashboardHeader({ displayFirstName, showUserButton }: Da
             <Link href="/dashboard" className="hover:text-gray-200 transition-colors">Dashboard</Link>
             <Link href="/dashboard/products" className="hover:text-gray-200 transition-colors">Products</Link>
             <Link href="/dashboard/transactions" className="hover:text-gray-200 transition-colors">Transactions</Link>
+            <Link href="/dashboard/stores" className="hover:text-gray-200 transition-colors">Stores</Link>
           </div>
 
-          {/* Right: Welcome + User icon (desktop) */}
+          {/* Right: Store Menu + Welcome + User icon (desktop) */}
           <div className="hidden md:flex items-center gap-3">
+            {onStoreChange && <StoreMenu onStoreChange={onStoreChange} />}
             <span className="text-sm">Welcome, {displayFirstName}</span>
             {showUserButton ? (
               <UserButton />
@@ -81,6 +86,7 @@ export default function DashboardHeader({ displayFirstName, showUserButton }: Da
               <Link onClick={() => setOpen(false)} href="/dashboard" className="py-2">Dashboard</Link>
               <Link onClick={() => setOpen(false)} href="/dashboard/products" className="py-2">Products</Link>
               <Link onClick={() => setOpen(false)} href="/dashboard/transactions" className="py-2">Transactions</Link>
+              <Link onClick={() => setOpen(false)} href="/dashboard/stores" className="py-2">Stores</Link>
             </div>
           </div>
         </div>

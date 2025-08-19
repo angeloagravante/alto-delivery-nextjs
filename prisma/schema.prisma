@@ -21,6 +21,20 @@ model User {
   
   // Add more fields as needed for the delivery service
   orders      Order[]
+  stores      Store[]
+}
+
+model Store {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String?
+  logoUrl     String?
+  userId      String   @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  products    Product[]
 }
 
 model Order {
@@ -43,4 +57,18 @@ model OrderItem {
   quantity  Int
   price     Float
   createdAt DateTime @default(now())
+}
+
+model Product {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String
+  price       Float
+  category    String
+  stock       Int
+  imageUrl    String
+  storeId     String   @db.ObjectId
+  store       Store    @relation(fields: [storeId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
