@@ -16,7 +16,7 @@ export default isClerkConfigured
         const { userId } = await auth()
         if (!userId) {
           const url = new URL('/sign-in', req.url)
-          return Response.redirect(url)
+          return NextResponse.redirect(url)
         }
       }
     })
