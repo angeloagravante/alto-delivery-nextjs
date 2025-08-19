@@ -5,7 +5,7 @@ import { UpdateStoreData } from '@/types/store'
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  context: unknown
 ) {
   try {
     const { userId } = await auth()
@@ -14,7 +14,8 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { id } = await params
+  const { params } = context as { params: { id: string } }
+  const { id } = params
     const body: UpdateStoreData = await request.json()
     const { name, description, logoUrl, storeType, village, phaseNumber, blockNumber, lotNumber } = body
 
@@ -80,7 +81,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  context: unknown
 ) {
   try {
     const { userId } = await auth()
@@ -89,7 +90,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { id } = await params
+  const { params } = context as { params: { id: string } }
+  const { id } = params
 
     // First find the user by clerkId
     const user = await prisma.user.findUnique({
@@ -109,10 +111,9 @@ export async function DELETE(
       return NextResponse.json({ error: 'Store not found' }, { status: 404 })
     }
 
-    // Delete the store (this will also delete associated products due to cascade)
-    await prisma.store.delete({
-      where: { id }
-    })
+  // Manually cascade delete products before deleting the store (MongoDB provider doesn't enforce referential actions)
+  await prisma.product.deleteMany({ where: { storeId: id } })
+  await prisma.store.delete({ where: { id } })
 
     return NextResponse.json({ message: 'Store deleted successfully' })
   } catch (error) {

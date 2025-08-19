@@ -6,7 +6,12 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+  "lint": "next lint",
+  "prisma:generate": "prisma generate",
+  "prisma:push": "prisma db push",
+  "db:check": "node check-db.js",
+  "db:cleanup": "node cleanup-db.js",
+  "db:test": "node test-db.js"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.31.1",

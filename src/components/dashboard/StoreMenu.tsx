@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import { Store } from '@/types/store'
 import { ChevronDownIcon } from '@heroicons/react/24/outline'
@@ -18,24 +18,9 @@ export default function StoreMenu({ onStoreChange }: StoreMenuProps) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const { isSignedIn, isLoaded } = useAuth()
-  const { currentStore, refreshStores } = useStore()
+  const { currentStore } = useStore()
 
-  useEffect(() => {
-    // Wait for authentication to be loaded and user to be signed in
-    if (isLoaded && isSignedIn) {
-      // Add a small delay to ensure Clerk is fully ready
-      const timer = setTimeout(() => {
-        fetchStores()
-      }, 500)
-      
-      return () => clearTimeout(timer)
-    } else if (isLoaded && !isSignedIn) {
-      setLoading(false)
-      setError('Not authenticated')
-    }
-  }, [isLoaded, isSignedIn]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const fetchStores = async () => {
+  const fetchStores = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -66,7 +51,22 @@ export default function StoreMenu({ onStoreChange }: StoreMenuProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [onStoreChange])
+
+  useEffect(() => {
+    // Wait for authentication to be loaded and user to be signed in
+    if (isLoaded && isSignedIn) {
+      // Add a small delay to ensure Clerk is fully ready
+      const timer = setTimeout(() => {
+        fetchStores()
+      }, 500)
+      
+      return () => clearTimeout(timer)
+    } else if (isLoaded && !isSignedIn) {
+      setLoading(false)
+      setError('Not authenticated')
+    }
+  }, [isLoaded, isSignedIn, fetchStores])
 
   const handleStoreSelect = (store: Store) => {
     console.log('Store selected:', store.name, 'ID:', store.id)
@@ -85,7 +85,7 @@ export default function StoreMenu({ onStoreChange }: StoreMenuProps) {
         fetchStores()
       }
     }
-  }, [stores, selectedStore])
+  }, [stores, selectedStore, fetchStores])
 
   // Listen for store context changes and refresh stores list
   useEffect(() => {
@@ -93,7 +93,7 @@ export default function StoreMenu({ onStoreChange }: StoreMenuProps) {
       console.log('Store context changed, refreshing stores...')
       fetchStores()
     }
-  }, [currentStore])
+  }, [currentStore, fetchStores, selectedStore])
 
   if (!isLoaded) {
     return (
