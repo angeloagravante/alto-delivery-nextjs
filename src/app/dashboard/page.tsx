@@ -37,9 +37,11 @@ export default async function DashboardPage() {
     {
       id: 'ORD-1001',
       customerName: 'John Doe',
+      customerAddress: '123 Main St, Makati, Metro Manila',
+      paymentMethod: 'Cash on Delivery',
       totalAmount: 125.5,
       status: 'new',
-      createdAt: new Date().toISOString(),
+      timestamp: new Date().toISOString(),
       items: [
         { name: 'Box A', quantity: 1, price: 50 },
         { name: 'Box B', quantity: 2, price: 37.75 },
@@ -50,18 +52,22 @@ export default async function DashboardPage() {
     {
       id: 'ORD-1002',
       customerName: 'Jane Smith',
+      customerAddress: '456 EDSA Ave, Quezon City, Metro Manila',
+      paymentMethod: 'GCash',
       totalAmount: 89.99,
       status: 'in_progress',
-      createdAt: new Date().toISOString(),
+      timestamp: new Date().toISOString(),
     },
   ]
   const completedOrders: DetailedOrder[] = [
     {
       id: 'ORD-0999',
       customerName: 'Acme Corp',
+      customerAddress: '789 Ayala Ave, Makati, Metro Manila',
+      paymentMethod: 'Credit Card',
       totalAmount: 349.0,
       status: 'completed',
-      createdAt: new Date().toISOString(),
+      timestamp: new Date().toISOString(),
     },
   ]
 
