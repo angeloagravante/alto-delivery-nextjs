@@ -55,6 +55,12 @@ export async function GET() {
       orderBy: { createdAt: 'desc' }
     })
     console.log('GET /api/stores - Found stores:', stores.length)
+    console.log('GET /api/stores - Store details:', stores.map(store => ({
+      id: store.id,
+      name: store.name,
+      logoUrl: store.logoUrl,
+      hasLogoUrl: !!store.logoUrl
+    })))
 
     return NextResponse.json(stores)
   } catch (error) {
