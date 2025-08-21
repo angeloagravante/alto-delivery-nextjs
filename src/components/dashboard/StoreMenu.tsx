@@ -163,6 +163,7 @@ export default function StoreMenu({ onStoreChange }: StoreMenuProps) {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-3 py-2 text-white hover:bg-white/10 rounded-md transition-colors"
+        title={selectedStore?.name}
       >
         {selectedStore?.logoUrl ? (
           <Image 
@@ -184,7 +185,7 @@ export default function StoreMenu({ onStoreChange }: StoreMenuProps) {
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 mt-1 w-64 bg-white rounded-md shadow-lg border border-gray-200 z-50">
+        <div className="absolute top-full left-0 w-64 bg-white rounded-md shadow-lg border border-gray-200 z-50">
           <div className="py-2">
             {stores.map((store) => (
               <button
