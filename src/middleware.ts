@@ -19,14 +19,26 @@ const isPublicRoute = createRouteMatcher([
 // Create the middleware function conditionally
 export default isClerkConfigured
   ? clerkMiddleware(async (auth, req) => {
-      // Only protect non-public routes (includes API routes that aren't explicitly public)
+      // Always establish Clerk context for API routes to ensure auth() works
+      if (req.nextUrl.pathname.startsWith('/api/')) {
+        try {
+          // Establish Clerk context without protecting (let individual routes handle auth)
+          await auth()
+        } catch (error) {
+          console.log('Clerk context establishment failed:', error)
+          // Continue anyway - individual API routes will handle auth
+        }
+        return NextResponse.next()
+      }
+      
+      // Only protect non-public routes (excludes API routes)
       if (!isPublicRoute(req)) {
         // Establish Clerk context and protect the route
         await auth.protect()
       }
       // Do not return a response here; letting Next continue is fine
     })
-  : function middleware(_req: NextRequest) {
+  : function middleware(req: NextRequest) {
       // Demo mode - allow all requests to pass through
       return NextResponse.next()
     }

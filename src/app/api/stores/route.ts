@@ -125,6 +125,9 @@ export async function POST(request: NextRequest) {
     const body: CreateStoreData = await request.json()
     const { name, description, logoUrl, storeType, village, phaseNumber, blockNumber, lotNumber } = body
 
+    console.log('Received store data:', body)
+    console.log('Logo URL received:', logoUrl)
+
     if (!name || name.trim().length === 0) {
       return NextResponse.json(
         { error: 'Store name is required' }, 
@@ -159,6 +162,9 @@ export async function POST(request: NextRequest) {
         userId: user.id
       }
     })
+
+    console.log('Store created successfully:', store)
+    console.log('Logo URL saved:', store.logoUrl)
 
     return NextResponse.json(store, { status: 201 })
   } catch (error) {

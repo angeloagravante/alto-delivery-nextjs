@@ -72,6 +72,15 @@ export default function StoreManagement({ onStoreChange }: StoreManagementProps)
         logoUrl: logoUrl || undefined
       }
 
+      console.log('=== FORM SUBMISSION DEBUG ===')
+      console.log('Original logoUrl state:', logoUrl)
+      console.log('Type of logoUrl:', typeof logoUrl)
+      console.log('Is logoUrl truthy?', !!logoUrl)
+      console.log('Sanitized form data:', sanitizedFormData)
+      console.log('Final store data being sent:', storeData)
+      console.log('Logo URL in final data:', storeData.logoUrl)
+      console.log('=== END DEBUG ===')
+
       const url = editingStore ? `/api/stores/${editingStore.id}` : '/api/stores'
       const method = editingStore ? 'PUT' : 'POST'
 
@@ -82,14 +91,20 @@ export default function StoreManagement({ onStoreChange }: StoreManagementProps)
       })
 
       if (response.ok) {
+        const result = await response.json()
+        console.log('Store saved successfully:', result)
         await fetchStores()
         onStoreChange()
         refreshStores() // Notify other components that stores changed
-        resetForm()
         setIsAddModalOpen(false)
         setEditingStore(null)
+        // Reset form after modal is closed to avoid clearing logo URL prematurely
+        setTimeout(() => {
+          resetForm()
+        }, 100)
       } else {
         const error = await response.json()
+        console.error('Error response:', error)
         alert(error.error || 'An error occurred')
       }
     } catch (error) {
@@ -407,9 +422,19 @@ export default function StoreManagement({ onStoreChange }: StoreManagementProps)
                     const file = e.target.files?.[0]
                     if (file) {
                       try {
+                        console.log('Starting file upload for:', file.name)
+                        console.log('File details:', { name: file.name, size: file.size, type: file.type })
                         const uploadResponse = await startUpload([file])
+                        console.log('Full upload response:', uploadResponse)
+                        console.log('Upload response type:', typeof uploadResponse)
+                        console.log('Upload response length:', uploadResponse?.length)
                         if (uploadResponse && uploadResponse[0]) {
+                          console.log('First upload result:', uploadResponse[0])
+                          console.log('URL property:', uploadResponse[0].url)
+                          console.log('Setting logo URL to:', uploadResponse[0].url)
                           setLogoUrl(uploadResponse[0].url)
+                        } else {
+                          console.error('Upload response is empty or invalid:', uploadResponse)
                         }
                       } catch (uploadError) {
                         console.error('Upload error:', uploadError)

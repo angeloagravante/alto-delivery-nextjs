@@ -19,6 +19,9 @@ export async function PUT(
     const body: UpdateStoreData = await request.json()
     const { name, description, logoUrl, storeType, village, phaseNumber, blockNumber, lotNumber } = body
 
+    console.log('Received update data:', body)
+    console.log('Logo URL received:', logoUrl)
+
     // First find the user by clerkId
     const user = await prisma.user.findUnique({
       where: { clerkId: userId }
@@ -71,6 +74,9 @@ export async function PUT(
         ...(lotNumber !== undefined && { lotNumber: lotNumber.trim() })
       }
     })
+
+    console.log('Store updated successfully:', updatedStore)
+    console.log('Logo URL saved:', updatedStore.logoUrl)
 
     return NextResponse.json(updatedStore)
   } catch (error) {
