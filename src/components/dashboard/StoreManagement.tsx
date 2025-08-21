@@ -5,12 +5,15 @@ import Image from 'next/image'
 import { Store, CreateStoreData } from '@/types/store'
 import { useUploadThing } from '@/lib/uploadthing'
 import { useStore } from '@/components/dashboard/DashboardWrapper'
+import StoreCard from './StoreCard'
+import Link from 'next/link'
 
 interface StoreManagementProps {
   onStoreChange: () => void
+  initialMode?: 'view' | 'add'
 }
 
-export default function StoreManagement({ onStoreChange }: StoreManagementProps) {
+export default function StoreManagement({ onStoreChange, initialMode = 'view' }: StoreManagementProps) {
   const [stores, setStores] = useState<Store[]>([])
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [editingStore, setEditingStore] = useState<Store | null>(null)
@@ -27,8 +30,43 @@ export default function StoreManagement({ onStoreChange }: StoreManagementProps)
   const [logoUrl, setLogoUrl] = useState<string>('')
   const [formReady, setFormReady] = useState(false)
   const [uploadProgress, setUploadProgress] = useState<number>(0)
+  const [isCreatingStore, setIsCreatingStore] = useState(false)
   const { startUpload, isUploading } = useUploadThing('storeLogo')
   const { refreshStores } = useStore()
+
+  // Auto-open add modal when in add mode
+  useEffect(() => {
+    if (initialMode === 'add') {
+      setIsAddModalOpen(true)
+    }
+  }, [initialMode])
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    try {
+      setUploadProgress(0)
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          if (prev >= 90) { clearInterval(progressInterval); return prev }
+          return prev + Math.random() * 15
+        })
+      }, 200)
+
+      const uploadResponse = await startUpload([file])
+      clearInterval(progressInterval)
+      setUploadProgress(100)
+
+      if (uploadResponse && uploadResponse[0]) {
+        setLogoUrl(uploadResponse[0].url)
+        console.log('File uploaded successfully:', uploadResponse[0].url)
+      }
+    } catch (error) {
+      console.error('Upload failed:', error)
+      setUploadProgress(0)
+    }
+  }
 
   // Configuration check for debugging
   useEffect(() => {
@@ -89,6 +127,7 @@ export default function StoreManagement({ onStoreChange }: StoreManagementProps)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    setIsCreatingStore(true)
     try {
       // Ensure all form data values are strings before submission
       const sanitizedFormData = ensureStringValues(formData)
@@ -145,6 +184,8 @@ export default function StoreManagement({ onStoreChange }: StoreManagementProps)
     } catch (error) {
       console.error('Error saving store:', error)
       alert('An error occurred while saving the store')
+    } finally {
+      setIsCreatingStore(false)
     }
   }
 
@@ -234,114 +275,224 @@ export default function StoreManagement({ onStoreChange }: StoreManagementProps)
 
   return (
     <div className="space-y-6">
-      <div className="flex mb-1 items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Store Management</h2>
-          <p className="text-gray-600">Manage your stores and their settings</p>
-        </div>
-        {stores.length < 3 && (
-          <button
-            onClick={openAddModal}
-            className="px-4 py-2 bg-[#1E466A] text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Add Store
-          </button>
-        )}
-      </div>
-
-      <div className="pl-0">
-        <p className="text-xs text-gray-600">
-          You can create up to 3 stores. Currently using {stores.length}/3.
-        </p>
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {stores.map((store) => (
-          <div key={store.id} className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center gap-3">
-                {store.logoUrl ? (
-                  <Image 
-                    src={store.logoUrl} 
-                    alt={store.name}
-                    width={48}
-                    height={48}
-                    className="w-12 h-12 rounded-lg object-cover"
-                    onError={(e) => {
-                      console.error('Image failed to load:', store.logoUrl, e)
-                    }}
-                    onLoad={() => {
-                      console.log('Image loaded successfully:', store.logoUrl)
-                    }}
-                  />
+      {initialMode === 'add' ? (
+        // Add Store Form in Main Content Area
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="mb-1">
+            <h2 className="text-2xl font-bold text-gray-900">Add New Store</h2>
+            <p className="text-sm text-gray-600">
+              You can create up to 3 stores. Currently using {stores.length}/3.
+            </p>
+          </div>
+          
+          <hr className="mb-6 border-gray-200" />
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Left Side - Image Upload */}
+            <div className="space-y-4">
+              <div className="mb-4">
+                {!logoUrl ? (
+                  <>
+                    <input type="file" name="file" id="file" className="sr-only" accept="image/png,image/jpeg" onChange={handleFileChange} />
+                    <label htmlFor="file" className="relative flex min-h-[300px] items-center justify-center rounded-md border border-dashed border-[#e0e0e0] p-8 text-center cursor-pointer hover:border-[#1E466A] transition-colors">
+                      <div>
+                        <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                          <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                        <span className="block text-lg font-medium text-gray-900 mb-2">Upload your store logo</span>
+                        <span className="block text-sm text-gray-500 mb-4">Or</span>
+                        <span className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1E466A]">
+                          Browse Files
+                        </span>
+                      </div>
+                    </label>
+                  </>
                 ) : (
-                  <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
-                    <span className="text-lg font-bold text-gray-600">
-                      {store.name.charAt(0).toUpperCase()}
-                    </span>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-900">Store Logo</span>
+                      <button 
+                        type="button" 
+                        onClick={() => setLogoUrl('')} 
+                        className="text-gray-400 hover:text-red-500 transition-colors"
+                      >
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                    <div className="flex justify-center">
+                      <img src={logoUrl} alt="Logo preview" className="w-48 h-48 object-cover rounded-lg border border-gray-200" />
+                    </div>
                   </div>
                 )}
-                <div>
-                  <h3 className="font-semibold text-gray-900">{store.name}</h3>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      {store.storeType}
-                    </span>
+              </div>
+
+              {/* Progress Bar - Always below upload section */}
+              {isUploading && (
+                <div className="space-y-2">
+                  <div className="text-sm text-gray-600">Uploading...</div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-[#1E466A] h-2 rounded-full transition-all duration-300" style={{ width: `${uploadProgress}%` }}></div>
                   </div>
-                  {store.description && (
-                    <p className="text-sm text-gray-600 mt-1">{store.description}</p>
-                  )}
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => handleEdit(store)}
-                  className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDelete(store.id)}
-                  className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-            
-            {/* Store Address Information */}
-            <div className="mt-4 space-y-2">
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                <span className="font-medium">{store.village}</span>
-              </div>
-              
-              {(store.phaseNumber || store.blockNumber || store.lotNumber) && (
-                <div className="flex items-center gap-3 text-xs text-gray-500">
-                  {store.phaseNumber && (
-                    <span>Phase {store.phaseNumber}</span>
-                  )}
-                  {store.blockNumber && (
-                    <span>Block {store.blockNumber}</span>
-                  )}
-                  {store.lotNumber && (
-                    <span>Lot {store.lotNumber}</span>
-                  )}
                 </div>
               )}
             </div>
-            
-            <div className="text-xs text-gray-500 mt-4">
-              Created {new Date(store.createdAt).toLocaleDateString()}
-            </div>
-          </div>
-        ))}
-      </div>
 
-      {isAddModalOpen && (
+            {/* Right Side - Form */}
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <h3 className="text-lg font-semibold text-gray-900">Store Information</h3>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Store Name *
+                </label>
+                <input
+                  type="text"
+                  value={formData.name || ''}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1E466A] focus:border-[#1E466A] transition-colors"
+                  placeholder="Enter store name"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description
+                </label>
+                <textarea
+                  value={formData.description || ''}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1E466A] focus:border-[#1E466A] transition-colors resize-none"
+                  placeholder="Enter store description"
+                  rows={3}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Store Type *
+                </label>
+                <select
+                  value={formData.storeType || ''}
+                  onChange={(e) => setFormData({ ...formData, storeType: e.target.value })}
+                  className={`w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1E466A] focus:border-[#1E466A] transition-colors ${
+                    !formData.storeType ? 'text-gray-500' : 'text-gray-900'
+                  }`}
+                  required
+                >
+                  <option value="" className="text-gray-900">Select store type</option>
+                  {storeTypes.map(type => (
+                    <option key={type} value={type} className="text-gray-900">{type}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Village *
+                </label>
+                <input
+                  type="text"
+                  value={formData.village || ''}
+                  onChange={(e) => setFormData({ ...formData, village: e.target.value })}
+                  className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1E466A] focus:border-[#1E466A] transition-colors"
+                  placeholder="Enter village name"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Phase Number
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.phaseNumber || ''}
+                    onChange={(e) => setFormData({ ...formData, phaseNumber: e.target.value })}
+                    className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1E466A] focus:border-[#1E466A] transition-colors"
+                    placeholder="Phase"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Block Number
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.blockNumber || ''}
+                    onChange={(e) => setFormData({ ...formData, blockNumber: e.target.value })}
+                    className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1E466A] focus:border-[#1E466A] transition-colors"
+                    placeholder="Block"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Lot Number
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.lotNumber || ''}
+                    onChange={(e) => setFormData({ ...formData, lotNumber: e.target.value })}
+                    className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1E466A] focus:border-[#1E466A] transition-colors"
+                    placeholder="Lot"
+                  />
+                </div>
+              </div>
+
+              {/* Form Actions - Lower right corner */}
+              <div className="flex gap-4 pt-4 justify-end">
+                <Link
+                  href="/dashboard/stores"
+                  className="px-6 py-2 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </Link>
+                <button
+                  type="submit"
+                  className="px-6 py-2 bg-[#1E466A] text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+                  disabled={isCreatingStore || isUploading}
+                >
+                  {isCreatingStore ? 'Creating Store...' : 'Create Store'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      ) : (
+        // Normal Store Management View
+        <>
+          <div className="flex mb-1 items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Store Management</h2>
+              <p className="text-gray-600">Manage your stores and their settings</p>
+            </div>
+            {stores.length < 3 && (
+              <button
+                onClick={openAddModal}
+                className="px-4 py-2 bg-[#1E466A] text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Add Store
+              </button>
+            )}
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {stores.map((store) => (
+              <StoreCard
+                key={store.id}
+                store={store}
+                onViewDetails={(store) => handleEdit(store)}
+              />
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* Edit Store Modal - Only show when editing */}
+      {isAddModalOpen && editingStore && (
         <div className="fixed inset-0 bg-white/20 bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="rounded-lg bg-white p-6 w-full max-w-md mx-4 shadow-2xl transform transition-all duration-200 ease-out scale-100">
             {!formReady ? (
@@ -351,8 +502,8 @@ export default function StoreManagement({ onStoreChange }: StoreManagementProps)
               </div>
             ) : (
               <>
-                <h3 className="text-lg font-semibold mb-4 text-black">
-                  {editingStore ? 'Edit Store' : 'Add New Store'}
+                <h3 className="text-lg font-semibold mb-1 text-black">
+                  Edit Store
                 </h3>
                 
                 <form onSubmit={handleSubmit} className="space-y-5">

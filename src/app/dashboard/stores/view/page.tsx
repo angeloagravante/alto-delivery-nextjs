@@ -3,7 +3,7 @@
 import StoreManagement from '@/components/dashboard/StoreManagement'
 import { useStore } from '@/components/dashboard/DashboardWrapper'
 
-export default function StoresPage() {
+export default function ViewStoresPage() {
   const { setCurrentStore, refreshStores } = useStore()
 
   const handleStoreChange = () => {

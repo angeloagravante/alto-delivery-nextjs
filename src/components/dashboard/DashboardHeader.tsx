@@ -2,21 +2,46 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { UserButton } from '@clerk/nextjs'
+import StoreMenu from './StoreMenu'
+import { Store } from '@/types/store'
 
 type DashboardHeaderProps = {
   displayFirstName: string
   showUserButton: boolean
+  onStoreChange?: (store: Store | null) => void
+  onBurgerClick?: () => void
 }
 
-export default function DashboardHeader({ displayFirstName, showUserButton }: DashboardHeaderProps) {
+export default function DashboardHeader({ displayFirstName, showUserButton, onStoreChange, onBurgerClick }: DashboardHeaderProps) {
   const [searchQuery, setSearchQuery] = useState('')
 
   return (
-    <header className="bg-white border-b border-gray-200 px-6 py-4">
-      <div className="flex items-center justify-between">
-        {/* Left Side - Search Input */}
-        <div className="flex-1 max-w-md">
+    <header className="sticky top-0 bg-white border-b border-gray-200 px-6 h-16 flex items-center">
+      <div className="flex items-center justify-between w-full">
+        {/* Mobile Layout */}
+        <div className="flex items-center gap-4 lg:hidden">
+          {/* Burger Button */}
+          {onBurgerClick && (
+            <button
+              onClick={onBurgerClick}
+              className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          )}
+          
+          {/* Logo Button */}
+          <Link href="/dashboard" className="flex items-center">
+            <Image src="/logo.svg" alt="Alto Delivery" width={120} height={36} priority />
+          </Link>
+        </div>
+
+        {/* Desktop Layout - Search Input */}
+        <div className="hidden lg:block flex-1 max-w-md">
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -36,12 +61,12 @@ export default function DashboardHeader({ displayFirstName, showUserButton }: Da
         {/* Right Side - Icons and User Profile */}
         <div className="flex items-center gap-4">
 
-          {/* Expand/Fullscreen Icon */}
-          <button className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors">
-            <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-            </svg>
-          </button>
+          {/* Store Selector - Desktop Only */}
+          {onStoreChange && (
+            <div className="hidden lg:block relative">
+              <StoreMenu onStoreChange={onStoreChange} />
+            </div>
+          )}
 
           {/* Settings Icon */}
           <button className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors">
@@ -51,8 +76,8 @@ export default function DashboardHeader({ displayFirstName, showUserButton }: Da
             </svg>
           </button>
 
-          {/* Notifications Icon with Badge */}
-          <button className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors relative">
+          {/* Notifications Icon with Badge - Desktop Only */}
+          <button className="hidden lg:flex w-10 h-10 bg-gray-100 rounded-full items-center justify-center hover:bg-gray-200 transition-colors relative">
             <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9a6 6 0 0 1 12 0" />
               <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
