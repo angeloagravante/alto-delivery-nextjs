@@ -302,14 +302,7 @@ export default function StoreDetails({ store, onStoreChange, onBack }: StoreDeta
               </div>
 
               {/* Form Actions */}
-              <div className="flex gap-4 pt-6">
-                <button
-                  type="button"
-                  onClick={onBack}
-                  className="px-6 py-2 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
+              <div className="flex justify-end gap-4 pt-6">
                 <button
                   type="submit"
                   className="px-6 py-2 bg-[#1E466A] text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
