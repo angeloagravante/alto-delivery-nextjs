@@ -4,14 +4,15 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
     "db:check": "node check-db.js",
     "db:cleanup": "node cleanup-db.js",
-    "db:test": "node test-db.js"
+    "db:test": "node test-db.js",
+    "vercel-build": "prisma generate && next build"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.31.1",
