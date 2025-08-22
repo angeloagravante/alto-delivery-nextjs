@@ -58,11 +58,15 @@ export async function POST(req: Request) {
   if (eventType === 'user.created') {
     const { id: clerkId, email_addresses, first_name, last_name, image_url } = evt.data;
     
+    console.log('Processing user.created event:', { clerkId, email_addresses, first_name, last_name, image_url });
+    
     try {
       // Get the primary email
       const primaryEmail = email_addresses?.find(email => email.id === evt.data.primary_email_address_id);
       
       if (primaryEmail) {
+        console.log('Primary email found:', primaryEmail.email_address);
+        
         // Create user in database
         const user = await prisma.user.create({
           data: {
@@ -73,10 +77,17 @@ export async function POST(req: Request) {
           }
         });
         
-        console.log('User created in database:', user);
+        console.log('✅ User created in database:', user);
+      } else {
+        console.log('❌ No primary email found in webhook data');
+        return new Response('No primary email found', { status: 400 });
       }
     } catch (error) {
-      console.error('Error creating user in database:', error);
+      console.error('❌ Error creating user in database:', error);
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      });
       return new Response('Error creating user', { status: 500 });
     }
   }
