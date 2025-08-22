@@ -134,34 +134,43 @@ export default function DashboardSidebar({ isOpen = false, onToggle, onClose }: 
           {navigation.map((item) => (
             <li key={item.name}>
               <div className="space-y-1">
-                                  {/* Main Navigation Item */}
+                {/* Main Navigation Item */}
+                {item.hasDropdown ? (
                   <div
                     className={`flex items-center justify-between px-3 py-3 rounded-r-3xl rounded-lg transition-colors cursor-pointer text-white/70 hover:bg-white/10 hover:text-white ${
                       isActive(item.href) ? 'bg-white/20 text-white' : ''
                     }`}
                     onClick={() => {
-                      if (item.hasDropdown) {
-                        toggleDropdown(item.name)
-                      } else {
-                        // Close sidebar when non-dropdown item is clicked (mobile only)
-                        if (onClose && isMobile) {
-                          onClose()
-                        }
-                      }
+                      toggleDropdown(item.name)
                     }}
                   >
-                  <div className="flex items-center gap-3">
-                    {item.icon}
-                    <span className="font-medium">{item.name}</span>
-                  </div>
-                  {item.hasDropdown && (
+                    <div className="flex items-center gap-3">
+                      {item.icon}
+                      <span className="font-medium">{item.name}</span>
+                    </div>
                     <ChevronDown 
                       className={`w-4 h-4 transition-transform duration-200 ${
                         expandedItems.includes(item.name) ? 'rotate-180' : ''
                       }`} 
                     />
-                  )}
-                </div>
+                  </div>
+                ) : (
+                  <Link
+                    href={item.href}
+                    className={`flex items-center gap-3 px-3 py-3 rounded-r-3xl rounded-lg transition-colors text-white/70 hover:bg-white/10 hover:text-white ${
+                      isActive(item.href) ? 'bg-white/20 text-white' : ''
+                    }`}
+                    onClick={() => {
+                      // Close sidebar when non-dropdown item is clicked (mobile only)
+                      if (onClose && isMobile) {
+                        onClose()
+                      }
+                    }}
+                  >
+                    {item.icon}
+                    <span className="font-medium">{item.name}</span>
+                  </Link>
+                )}
                 
                 {/* Dropdown Sub-items */}
                 {item.hasDropdown && expandedItems.includes(item.name) && (
