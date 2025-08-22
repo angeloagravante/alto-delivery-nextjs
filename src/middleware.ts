@@ -1,5 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 
 // Check if Clerk is properly configured
 const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
@@ -38,7 +38,7 @@ export default isClerkConfigured
       }
       // Do not return a response here; letting Next continue is fine
     })
-  : function middleware(req: NextRequest) {
+  : function middleware() {
       // Demo mode - allow all requests to pass through
       return NextResponse.next()
     }

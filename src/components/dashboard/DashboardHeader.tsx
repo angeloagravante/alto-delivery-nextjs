@@ -3,9 +3,11 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { UserButton } from '@clerk/nextjs'
 import StoreMenu from './StoreMenu'
 import { Store } from '@/types/store'
+import { Search, Bell } from 'lucide-react'
 
 type DashboardHeaderProps = {
   displayFirstName: string
@@ -16,6 +18,10 @@ type DashboardHeaderProps = {
 
 export default function DashboardHeader({ displayFirstName, showUserButton, onStoreChange, onBurgerClick }: DashboardHeaderProps) {
   const [searchQuery, setSearchQuery] = useState('')
+  const pathname = usePathname()
+
+  // Hide store selector on store-related pages
+  const shouldShowStoreSelector = onStoreChange && !pathname.includes('/stores')
 
   return (
     <header className="sticky top-0 bg-white border-b border-gray-200 px-6 h-16 flex items-center z-20">
@@ -61,26 +67,21 @@ export default function DashboardHeader({ displayFirstName, showUserButton, onSt
         {/* Right Side - Icons and User Profile */}
         <div className="flex items-center gap-4">
 
-          {/* Store Selector - Desktop Only */}
-          {onStoreChange && (
+          {/* Store Selector - Desktop Only, Hidden on Store Pages */}
+          {shouldShowStoreSelector && (
             <div className="hidden lg:block relative">
               <StoreMenu onStoreChange={onStoreChange} />
             </div>
           )}
 
           {/* Search Icon - Always Visible */}
-          <button className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors">
-            <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+          <button className="hidden lg:hidden w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors">
+            <Search className="w-5 h-5 text-gray-600" />
           </button>
 
           {/* Notifications Icon with Badge - Always Visible */}
           <button className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors relative">
-            <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9a6 6 0 0 1 12 0" />
-              <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-            </svg>
+            <Bell className="w-5 h-5 text-gray-600" />
             {/* Notification Badge */}
             <span className="absolute -top-1 -right-1 w-5 h-5 bg-yellow-400 text-white text-xs rounded-full flex items-center justify-center font-medium">
               2

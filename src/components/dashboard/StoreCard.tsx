@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { Store } from '@/types/store'
 
 interface StoreCardProps {
@@ -15,9 +16,11 @@ export default function StoreCard({ store, onViewDetails }: StoreCardProps) {
         {/* Logo/Icon */}
         {store.logoUrl ? (
           <div className="w-16 h-16 mx-auto mb-3">
-            <img 
+            <Image 
               src={store.logoUrl} 
               alt={`${store.name} logo`}
+              width={64}
+              height={64}
               className="w-16 h-16 rounded-full object-cover mx-auto"
             />
           </div>

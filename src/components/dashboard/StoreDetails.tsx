@@ -1,10 +1,10 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { Store, CreateStoreData } from '@/types/store'
 import { useUploadThing } from '@/lib/uploadthing'
 import StoreCard from './StoreCard'
-import Link from 'next/link'
 
 interface StoreDetailsProps {
   store: Store
@@ -106,84 +106,86 @@ export default function StoreDetails({ store, onStoreChange, onBack }: StoreDeta
     }
   }
 
-  const handleViewDetails = () => {
-    // This function is passed to StoreCard but won't be used in this view
-    // since we're already showing the details
-  }
-
   return (
-    <div className="space-y-6">
+    <div className="max-w-4xl mx-auto p-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between mb-8">
+        <div>
           <button
             onClick={onBack}
-            className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors mb-2"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
+            Back to Stores
           </button>
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">Store Details</h2>
-            <p className="text-gray-600">View and edit store information</p>
-          </div>
+          <h1 className="text-3xl font-bold text-gray-900">Store Details</h1>
+          <p className="text-gray-600 mt-1">Manage your store information and settings</p>
         </div>
       </div>
 
-      {/* Split View */}
-      <div className="flex flex-col lg:flex-row gap-8">
-        {/* Left Side - Store Card */}
-        <div className="lg:w-1/3">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Left Column - Store Card Preview */}
+        <div className="lg:col-span-1">
           <div className="sticky top-6">
-            <StoreCard
-              store={store}
-              onViewDetails={handleViewDetails}
-            />
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Store Preview</h2>
+            <StoreCard store={store} onViewDetails={() => {}} />
           </div>
         </div>
 
-        {/* Right Side - Edit Form */}
-        <div className="lg:w-2/3">
+        {/* Right Column - Edit Form */}
+        <div className="lg:col-span-2">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-6">Edit Store Information</h3>
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">Edit Store Information</h2>
             
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-6">
               {/* Logo Upload */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Store Logo
                 </label>
-                <div className="mb-4">
-                  {!logoUrl ? (
-                    <>
-                      <input type="file" name="file" id="file" className="sr-only" accept="image/png,image/jpeg" onChange={handleFileChange} />
-                      <label htmlFor="file" className="relative flex min-h-[120px] items-center justify-center rounded-md border border-dashed border-[#e0e0e0] p-4 text-center cursor-pointer hover:border-[#1E466A] transition-colors">
-                        <div>
-                          <svg className="mx-auto h-8 w-8 text-gray-400 mb-2" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                          <span className="block text-sm font-medium text-gray-900 mb-1">Upload new logo</span>
-                          <span className="block text-xs text-gray-500">Click to browse files</span>
-                        </div>
-                      </label>
-                    </>
-                  ) : (
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-700">Current Logo</span>
-                        <button 
-                          type="button" 
-                          onClick={() => setLogoUrl('')} 
-                          className="text-gray-400 hover:text-red-500 transition-colors"
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-[#1E466A] file:text-white hover:file:bg-[#1E466A]/90 transition-colors"
+                    />
+                    {logoUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setLogoUrl('')}
+                        className="p-2 text-red-600 hover:text-red-800 transition-colors"
+                        title="Remove logo"
+                      >
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                  {logoUrl && (
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Current Logo:</span>
+                        <button
+                          type="button"
+                          onClick={() => setLogoUrl('')}
+                          className="text-sm text-red-600 hover:text-red-800 transition-colors"
                         >
-                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
+                          Remove
                         </button>
                       </div>
                       <div className="flex justify-center">
-                        <img src={logoUrl} alt="Logo preview" className="w-24 h-24 object-cover rounded-lg border border-gray-200" />
+                        <Image 
+                          src={logoUrl} 
+                          alt="Logo preview" 
+                          width={96}
+                          height={96}
+                          className="w-24 h-24 object-cover rounded-lg border border-gray-200" 
+                        />
                       </div>
                     </div>
                   )}
@@ -293,7 +295,7 @@ export default function StoreDetails({ store, onStoreChange, onBack }: StoreDeta
                   </label>
                   <input
                     type="text"
-                    value={formData.lotNumber}
+                    value={formData.blockNumber}
                     onChange={(e) => setFormData({ ...formData, lotNumber: e.target.value })}
                     className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1E466A] focus:border-[#1E466A] transition-colors"
                     placeholder="Lot"
@@ -301,14 +303,21 @@ export default function StoreDetails({ store, onStoreChange, onBack }: StoreDeta
                 </div>
               </div>
 
-              {/* Form Actions */}
-              <div className="flex justify-end gap-4 pt-6">
+              {/* Submit Button */}
+              <div className="flex gap-4 pt-4">
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-[#1E466A] text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
-                  disabled={isUpdating || isUploading}
+                  disabled={isUpdating}
+                  className="px-6 py-2 bg-[#1E466A] text-white font-semibold rounded-lg hover:bg-[#1E466A]/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  {isUpdating ? 'Updating Store...' : 'Update Store'}
+                  {isUpdating ? 'Updating...' : 'Update Store'}
+                </button>
+                <button
+                  type="button"
+                  onClick={onBack}
+                  className="px-6 py-2 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
                 </button>
               </div>
             </form>

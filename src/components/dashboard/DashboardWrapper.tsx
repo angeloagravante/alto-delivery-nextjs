@@ -59,9 +59,6 @@ export default function DashboardWrapper({ children, displayFirstName, showUserB
         )}
         
         <DashboardSidebar 
-          displayFirstName={displayFirstName} 
-          showUserButton={showUserButton}
-          onStoreChange={handleStoreChange}
           isOpen={isSidebarOpen}
           onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
           onClose={() => setIsSidebarOpen(false)}

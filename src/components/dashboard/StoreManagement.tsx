@@ -208,45 +208,6 @@ export default function StoreManagement({ onStoreChange, initialMode = 'view' }:
     }
   }
 
-  const handleDelete = async (storeId: string) => {
-    if (!confirm('Are you sure you want to delete this store? This action cannot be undone.')) {
-      return
-    }
-
-    try {
-      const response = await fetch(`/api/stores/${storeId}`, {
-        method: 'DELETE'
-      })
-
-      if (response.ok) {
-        await fetchStores()
-        onStoreChange()
-        refreshStores() // Notify other components that stores changed
-      } else {
-        const error = await response.json()
-        alert(error.error || 'An error occurred')
-      }
-    } catch (error) {
-      console.error('Error deleting store:', error)
-      alert('An error occurred while deleting the store')
-    }
-  }
-
-  const handleEdit = (store: Store) => {
-    setEditingStore(store)
-    setFormData(ensureStringValues({
-      name: store.name,
-      description: store.description,
-      storeType: store.storeType,
-      village: store.village,
-      phaseNumber: store.phaseNumber,
-      blockNumber: store.blockNumber,
-      lotNumber: store.lotNumber
-    }))
-    setLogoUrl(store.logoUrl || '')
-    setIsAddModalOpen(true)
-  }
-
   // Helper function to ensure all form values are strings
   const ensureStringValues = (data: Partial<CreateStoreData>): CreateStoreData => ({
     name: data.name || '',
@@ -341,7 +302,24 @@ export default function StoreManagement({ onStoreChange, initialMode = 'view' }:
                       </button>
                     </div>
                     <div className="flex justify-center">
-                      <img src={logoUrl} alt="Logo preview" className="w-48 h-48 object-cover rounded-lg border border-gray-200" />
+                      <Image 
+                        src={logoUrl} 
+                        alt="Logo preview" 
+                        width={192}
+                        height={192}
+                        className="w-48 h-48 object-cover rounded-lg border border-gray-200"
+                        onError={(e) => {
+                          console.error('Preview image failed to load:', logoUrl, e)
+                          console.error('Image error details:', {
+                            url: logoUrl,
+                            error: e,
+                            timestamp: new Date().toISOString()
+                          })
+                        }}
+                        onLoad={() => {
+                          console.log('Preview image loaded successfully:', logoUrl)
+                        }}
+                      />
                     </div>
                   </div>
                 )}
