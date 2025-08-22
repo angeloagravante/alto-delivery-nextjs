@@ -29,7 +29,7 @@ export default function DashboardMain({ newOrders, inProgressOrders, completedOr
   }, [completedOrders])
 
   return (
-    <div>
+    <div className="py-6 px-6">
       {showLegacyOverview ? (
         <OverviewCards
           revenue={revenue}

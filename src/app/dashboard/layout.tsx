@@ -1,5 +1,5 @@
 import { currentUser } from '@clerk/nextjs/server'
-import DashboardHeader from '@/components/dashboard/DashboardHeader'
+import DashboardWrapper from '@/components/dashboard/DashboardWrapper'
 
 export default async function DashboardLayout({
   children,
@@ -21,12 +21,9 @@ export default async function DashboardLayout({
   const displayFirstName = (user as { firstName?: string } | null)?.firstName || 'User';
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <DashboardHeader displayFirstName={displayFirstName} showUserButton={Boolean(user)} />
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        {children}
-      </main>
-    </div>
+    <DashboardWrapper displayFirstName={displayFirstName} showUserButton={Boolean(user)}>
+      {children}
+    </DashboardWrapper>
   )
 }
 

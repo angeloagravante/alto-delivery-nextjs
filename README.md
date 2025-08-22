@@ -3,6 +3,13 @@
 
 A modern delivery service platform built with Next.js, TypeScript, and a comprehensive tech stack.
 
+## ⚡ Quick Reference
+
+- **Webhook Endpoint**: `/api/webhooks/clerk`
+- **Test User API**: `/api/test-user`
+- **Store Management**: `/dashboard/stores`
+- **Products**: `/dashboard/products`
+
 ## 🚀 Tech Stack
 
 - **Framework**: Next.js 15 with App Router
@@ -45,6 +52,7 @@ CLERK_SECRET_KEY=sk_test_JqSYMJgDLYmuWsb9VJbz7Xyjnb2Ds5fs3VIL66S7qk
 NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
 NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL=/
 NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL=/
+CLERK_WEBHOOK_SECRET=your_webhook_secret_here
 ```
 
 ## 🚀 Getting Started
@@ -63,14 +71,21 @@ NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL=/
    npx prisma db push
    ```
 
-4. **Run development server**:
+4. **Set up Clerk webhook** (IMPORTANT for user creation):
+   - Go to [Clerk Dashboard](https://dashboard.clerk.com/)
+   - Navigate to **Webhooks** → **Add Endpoint**
+   - Set endpoint URL: `https://yourdomain.com/api/webhooks/clerk`
+   - Select events: `user.created`, `user.updated`, `user.deleted`
+   - Copy the signing secret to `CLERK_WEBHOOK_SECRET` in your `.env`
+
+5. **Run development server**:
    ```bash
    npm run dev
    ```
 
    Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-5. **Build for production**:
+6. **Build for production**:
    ```bash
    npm run build
    ```
@@ -97,6 +112,54 @@ NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL=/
 - Route protection with Clerk middleware
 - Environment variable configuration
 - Secure authentication flow
+
+## 🚨 Troubleshooting
+
+### Image Loading Issues
+If you see "hostname not configured" errors for images:
+
+1. **Add new image domains** to `next.config.ts`:
+   ```typescript
+   images: {
+     remotePatterns: [
+       {
+         protocol: 'https',
+         hostname: 'your-domain.com',
+         port: '',
+         pathname: '/**',
+       },
+     ],
+   }
+   ```
+
+2. **Restart development server** after config changes:
+   ```bash
+   npm run dev
+   ```
+
+### Store Dropdown Not Working
+If the store dropdown shows "No stores" or doesn't load:
+
+1. **Check if webhook is configured**:
+   - Verify `CLERK_WEBHOOK_SECRET` is set in `.env`
+   - Check Clerk dashboard webhook endpoint is active
+
+2. **Check browser console** for errors:
+   - Look for "User not found" or authentication errors
+   - Verify stores API calls are successful
+
+3. **Test user creation**:
+   - Visit `/api/test-user` to check user status
+   - Create a test user if needed
+
+4. **Verify database connection**:
+   - Ensure MongoDB is running
+   - Check Prisma connection
+
+### Common Issues
+- **"User not found"**: Webhook not configured or user not created in database
+- **"Unauthorized"**: Clerk authentication not working
+- **"No stores"**: User exists but no stores created yet
 
 ## 📦 Database Schema
 
