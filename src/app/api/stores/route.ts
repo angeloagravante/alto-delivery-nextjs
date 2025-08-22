@@ -78,8 +78,10 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await auth()
+    console.log('POST /api/stores - Auth userId:', userId)
     
     if (!userId) {
+      console.log('POST /api/stores - No userId from auth')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -87,10 +89,12 @@ export async function POST(request: NextRequest) {
     let user = await prisma.user.findUnique({
       where: { clerkId: userId }
     })
+    console.log('POST /api/stores - User lookup result:', user ? 'found' : 'not found')
 
     // If user doesn't exist, create them (fallback for when webhook isn't configured)
     if (!user) {
       try {
+        console.log('POST /api/stores - Creating new user for clerkId:', userId)
         // Create user in database with basic info
         user = await prisma.user.create({
           data: {
@@ -99,9 +103,9 @@ export async function POST(request: NextRequest) {
             name: 'User', // Temporary name, will be updated by webhook
           }
         })
-        console.log('Created user in database:', user)
+        console.log('POST /api/stores - Successfully created user:', user.id)
       } catch (error) {
-        console.error('Error creating user:', error)
+        console.error('POST /api/stores - Error creating user:', error)
         // Check if it's a MongoDB replica set error
         if (error instanceof Error && error.message.includes('replica set')) {
           return NextResponse.json({ 
@@ -113,6 +117,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!user) {
+      console.log('POST /api/stores - User still not found after creation attempt')
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
@@ -120,6 +125,7 @@ export async function POST(request: NextRequest) {
     const storeCount = await prisma.store.count({
       where: { userId: user.id }
     })
+    console.log('POST /api/stores - Current store count for user:', storeCount)
 
     if (storeCount >= 3) {
       return NextResponse.json(
@@ -131,8 +137,8 @@ export async function POST(request: NextRequest) {
     const body: CreateStoreData = await request.json()
     const { name, description, logoUrl, storeType, village, phaseNumber, blockNumber, lotNumber } = body
 
-    console.log('Received store data:', body)
-    console.log('Logo URL received:', logoUrl)
+    console.log('POST /api/stores - Received store data:', body)
+    console.log('POST /api/stores - Logo URL received:', logoUrl)
 
     if (!name || name.trim().length === 0) {
       return NextResponse.json(
@@ -155,6 +161,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    console.log('POST /api/stores - Attempting to create store for user:', user.id)
     const store = await prisma.store.create({
       data: {
         name: name.trim(),
@@ -169,18 +176,43 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    console.log('Store created successfully:', store)
-    console.log('Logo URL saved:', store.logoUrl)
+    console.log('POST /api/stores - Store created successfully:', store)
+    console.log('POST /api/stores - Logo URL saved:', store.logoUrl)
 
     return NextResponse.json(store, { status: 201 })
   } catch (error) {
-    console.error('Error creating store:', error)
-    // Check if it's a MongoDB replica set error
-    if (error instanceof Error && error.message.includes('replica set')) {
-      return NextResponse.json({ 
-        error: 'Database configuration issue. Please contact support.' 
-      }, { status: 500 })
+    console.error('POST /api/stores - Error creating store:', error)
+    
+    // Provide more specific error information
+    if (error instanceof Error) {
+      console.error('POST /api/stores - Error details:', {
+        message: error.message,
+        name: error.name,
+        stack: error.stack
+      })
+      
+      // Check if it's a MongoDB replica set error
+      if (error.message.includes('replica set')) {
+        return NextResponse.json({ 
+          error: 'Database configuration issue. Please contact support.' 
+        }, { status: 500 })
+      }
+      
+      // Check if it's a Prisma validation error
+      if (error.message.includes('Invalid')) {
+        return NextResponse.json({ 
+          error: 'Invalid data provided' 
+        }, { status: 400 })
+      }
+      
+      // Check if it's a connection error
+      if (error.message.includes('connect') || error.message.includes('timeout')) {
+        return NextResponse.json({ 
+          error: 'Database connection failed. Please try again.' 
+        }, { status: 500 })
+      }
     }
+    
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
