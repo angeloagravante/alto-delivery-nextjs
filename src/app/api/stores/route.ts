@@ -5,12 +5,25 @@ import { CreateStoreData } from '@/types/store'
 
 export async function GET() {
   try {
-    const { userId } = await auth()
-    console.log('GET /api/stores - Auth userId:', userId)
+    // Check if we're in demo mode
+    const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+    const isDemoMode = !clerkPublishableKey || clerkPublishableKey === 'pk_test_demo_placeholder_for_build'
     
-    if (!userId) {
-      console.log('GET /api/stores - No userId from auth')
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    let userId: string | null = null
+    
+    if (!isDemoMode) {
+      const authResult = await auth()
+      userId = authResult.userId
+      console.log('GET /api/stores - Auth userId:', userId)
+      
+      if (!userId) {
+        console.log('GET /api/stores - No userId from auth')
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
+    } else {
+      // Demo mode - use a demo user ID
+      userId = 'demo-user-123'
+      console.log('GET /api/stores - Demo mode, using userId:', userId)
     }
 
     // First find the user by clerkId
@@ -27,8 +40,8 @@ export async function GET() {
         user = await prisma.user.create({
           data: {
             clerkId: userId,
-            email: `user-${userId}@temp.com`, // Temporary email, will be updated by webhook
-            name: 'User', // Temporary name, will be updated by webhook
+            email: isDemoMode ? 'demo@altodelivery.com' : `user-${userId}@temp.com`, // Temporary email, will be updated by webhook
+            name: isDemoMode ? 'Demo User' : 'User', // Temporary name, will be updated by webhook
           }
         })
         console.log('GET /api/stores - Successfully created user:', user.id)
@@ -50,10 +63,49 @@ export async function GET() {
     }
 
     console.log('GET /api/stores - Fetching stores for user:', user.id)
-    const stores = await prisma.store.findMany({
+    let stores = await prisma.store.findMany({
       where: { userId: user.id },
       orderBy: { createdAt: 'desc' }
     })
+    
+    // In demo mode, create demo stores if none exist
+    if (isDemoMode && stores.length === 0) {
+      console.log('GET /api/stores - Demo mode: creating demo stores')
+      try {
+        const demoStores = await Promise.all([
+          prisma.store.create({
+            data: {
+              name: 'Demo Store 1',
+              description: 'A sample store for demonstration purposes',
+              storeType: 'Restaurant',
+              village: 'Demo Village',
+              phaseNumber: '1',
+              blockNumber: 'A',
+              lotNumber: '123',
+              userId: user.id
+            }
+          }),
+          prisma.store.create({
+            data: {
+              name: 'Demo Store 2',
+              description: 'Another sample store for demonstration',
+              storeType: 'Retail',
+              village: 'Demo Village',
+              phaseNumber: '2',
+              blockNumber: 'B',
+              lotNumber: '456',
+              userId: user.id
+            }
+          })
+        ])
+        stores = demoStores
+        console.log('GET /api/stores - Demo stores created:', demoStores.length)
+      } catch (error) {
+        console.error('GET /api/stores - Error creating demo stores:', error)
+        // Continue with empty stores if demo creation fails
+      }
+    }
+    
     console.log('GET /api/stores - Found stores:', stores.length)
     console.log('GET /api/stores - Store details:', stores.map(store => ({
       id: store.id,
@@ -77,12 +129,25 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth()
-    console.log('POST /api/stores - Auth userId:', userId)
+    // Check if we're in demo mode
+    const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+    const isDemoMode = !clerkPublishableKey || clerkPublishableKey === 'pk_test_demo_placeholder_for_build'
     
-    if (!userId) {
-      console.log('POST /api/stores - No userId from auth')
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    let userId: string | null = null
+    
+    if (!isDemoMode) {
+      const authResult = await auth()
+      userId = authResult.userId
+      console.log('POST /api/stores - Auth userId:', userId)
+      
+      if (!userId) {
+        console.log('POST /api/stores - No userId from auth')
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
+    } else {
+      // Demo mode - use a demo user ID
+      userId = 'demo-user-123'
+      console.log('POST /api/stores - Demo mode, using userId:', userId)
     }
 
     // First find the user by clerkId
@@ -99,8 +164,8 @@ export async function POST(request: NextRequest) {
         user = await prisma.user.create({
           data: {
             clerkId: userId,
-            email: `user-${userId}@temp.com`, // Temporary email, will be updated by webhook
-            name: 'User', // Temporary name, will be updated by webhook
+            email: isDemoMode ? 'demo@altodelivery.com' : `user-${userId}@temp.com`, // Temporary email, will be updated by webhook
+            name: isDemoMode ? 'Demo User' : 'User', // Temporary name, will be updated by webhook
           }
         })
         console.log('POST /api/stores - Successfully created user:', user.id)

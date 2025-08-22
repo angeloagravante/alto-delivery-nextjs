@@ -22,6 +22,8 @@ export default function DashboardHeader({ displayFirstName, showUserButton, onSt
 
   // Hide store selector on store-related pages
   const shouldShowStoreSelector = onStoreChange && !pathname.includes('/stores')
+  
+
 
   return (
     <header className="sticky top-0 bg-white border-b border-gray-200 px-6 h-16 flex items-center z-20">

@@ -18,9 +18,18 @@ export default function StoreMenu({ onStoreChange }: StoreMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  
+  // Check if we're in demo mode (Clerk not configured)
+  const isDemoMode = !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || 
+                    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY === 'pk_test_demo_placeholder_for_build'
+  
+
 
   const fetchStores = useCallback(async () => {
-    if (!isSignedIn) return
+    // In demo mode, skip authentication check
+    if (!isDemoMode && !isSignedIn) return
+
+
 
     try {
       setLoading(true)
@@ -29,47 +38,49 @@ export default function StoreMenu({ onStoreChange }: StoreMenuProps) {
       
       if (response.ok) {
         const data = await response.json()
-        setStores(data.stores || [])
         
-        // If no store is selected and we have stores, select the first one
-        if (!selectedStore && data.stores && data.stores.length > 0) {
-          const firstStore = data.stores[0]
+        // The API returns stores directly, not wrapped in a 'stores' property
+        const storesData = Array.isArray(data) ? data : (data.stores || [])
+        
+        setStores(storesData)
+        
+        // Auto-select first store only if no store is currently selected
+        if (!selectedStore && storesData.length > 0) {
+          const firstStore = storesData[0]
           setSelectedStore(firstStore)
           onStoreChange(firstStore)
-        }
-        
-        // If we have a current store from context, try to find it in the stores list
-        if (currentStore && data.stores) {
-          const contextStore = data.stores.find((store: Store) => store.id === currentStore.id)
-          if (contextStore) {
-            setSelectedStore(contextStore)
-            onStoreChange(contextStore)
-          }
         }
       } else {
         const errorData = await response.json()
         setError(errorData.error || 'Failed to fetch stores')
       }
-    } catch (err) {
-      console.error('Error fetching stores:', err)
+    } catch {
       setError('Failed to fetch stores')
     } finally {
       setLoading(false)
     }
-  }, [isSignedIn, selectedStore, currentStore, onStoreChange])
+  }, [isDemoMode, isSignedIn, selectedStore, onStoreChange])
 
-  // Initial load
+  // Initial load - only fetch once when conditions are met
   useEffect(() => {
-    if (isLoaded && isSignedIn) {
-      fetchStores()
-    } else if (isLoaded && !isSignedIn) {
-      setLoading(false)
-      setError('Not authenticated')
+    // Only fetch if we haven't fetched stores yet
+    if (stores.length === 0) {
+      if (isDemoMode) {
+        // In demo mode, fetch stores immediately
+        fetchStores()
+      } else if (isLoaded && isSignedIn) {
+        // User authenticated, fetch stores
+        fetchStores()
+      } else if (isLoaded && !isSignedIn) {
+        // User not authenticated
+        setLoading(false)
+        setError('Not authenticated')
+      }
     }
-  }, [isLoaded, isSignedIn, fetchStores])
+    // Note: If isLoaded is false, we wait for Clerk to finish loading
+  }, [isDemoMode, isLoaded, isSignedIn, stores.length, fetchStores])
 
   const handleStoreSelect = (store: Store) => {
-    console.log('Store selected:', store.name, 'ID:', store.id)
     setSelectedStore(store)
     onStoreChange(store)
     setIsOpen(false)
@@ -80,22 +91,34 @@ export default function StoreMenu({ onStoreChange }: StoreMenuProps) {
     if (selectedStore && stores.length > 0) {
       const storeExists = stores.find(store => store.id === selectedStore.id)
       if (!storeExists) {
-        console.log('Selected store no longer exists, refreshing...')
-        // If selected store was deleted, refresh and select first available store
-        fetchStores()
+        // If selected store was deleted, select first available store without re-fetching
+        const firstStore = stores[0]
+        setSelectedStore(firstStore)
+        onStoreChange(firstStore)
       }
     }
-  }, [stores, selectedStore, fetchStores])
+  }, [stores, selectedStore, onStoreChange])
 
-  // Listen for store context changes and refresh stores list
+  // Sync selected store with current store context (without triggering fetch)
   useEffect(() => {
-    if (currentStore !== selectedStore) {
-      console.log('Store context changed, refreshing stores...')
-      fetchStores()
+    if (currentStore && currentStore !== selectedStore) {
+      setSelectedStore(currentStore)
     }
-  }, [currentStore, selectedStore, fetchStores])
+  }, [currentStore, selectedStore])
 
-  if (!isLoaded) {
+  // Fallback: If Clerk takes too long to load, try to fetch stores anyway
+  useEffect(() => {
+    if (!isDemoMode && !isLoaded && stores.length === 0) {
+      const timer = setTimeout(() => {
+        fetchStores()
+      }, 3000) // Wait 3 seconds before trying
+
+      return () => clearTimeout(timer)
+    }
+  }, [isDemoMode, isLoaded, stores.length, fetchStores])
+
+  // Show loading state while Clerk is initializing
+  if (!isDemoMode && !isLoaded) {
     return (
       <div className="flex items-center gap-2 px-3 py-2 text-white">
         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -104,7 +127,8 @@ export default function StoreMenu({ onStoreChange }: StoreMenuProps) {
     )
   }
 
-  if (!isSignedIn) {
+  // Show not signed in state only after Clerk has loaded and user is definitely not signed in
+  if (!isDemoMode && isLoaded && !isSignedIn) {
     return (
       <div className="flex items-center gap-2 px-3 py-2 text-white">
         <span className="text-sm text-red-200">Not signed in</span>
@@ -249,3 +273,4 @@ export default function StoreMenu({ onStoreChange }: StoreMenuProps) {
     </div>
   )
 }
+
