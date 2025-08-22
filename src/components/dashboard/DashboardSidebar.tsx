@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { UserButton } from '@clerk/nextjs'
 import { Store } from '@/types/store'
 
@@ -13,11 +13,24 @@ type DashboardSidebarProps = {
   onStoreChange?: (store: Store | null) => void
   isOpen?: boolean
   onToggle?: () => void
+  onClose?: () => void
 }
 
-export default function DashboardSidebar({ displayFirstName, showUserButton, onStoreChange, isOpen = false, onToggle }: DashboardSidebarProps) {
+export default function DashboardSidebar({ displayFirstName, showUserButton, onStoreChange, isOpen = false, onToggle, onClose }: DashboardSidebarProps) {
   const pathname = usePathname()
   const [expandedItems, setExpandedItems] = useState<string[]>([])
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024)
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   const toggleDropdown = (itemName: string) => {
     setExpandedItems(prev => 
@@ -143,7 +156,16 @@ export default function DashboardSidebar({ displayFirstName, showUserButton, onS
                     className={`flex items-center justify-between px-3 py-3 rounded-r-3xl rounded-lg transition-colors cursor-pointer text-white/70 hover:bg-white/10 hover:text-white ${
                       isActive(item.href) ? 'bg-white/20 text-white' : ''
                     }`}
-                    onClick={() => item.hasDropdown ? toggleDropdown(item.name) : undefined}
+                    onClick={() => {
+                      if (item.hasDropdown) {
+                        toggleDropdown(item.name)
+                      } else {
+                        // Close sidebar when non-dropdown item is clicked (mobile only)
+                        if (onClose && isMobile) {
+                          onClose()
+                        }
+                      }
+                    }}
                   >
                   <div className="flex items-center gap-3">
                     {item.icon}
@@ -175,6 +197,12 @@ export default function DashboardSidebar({ displayFirstName, showUserButton, onS
                             ? 'bg-white/20 text-white'
                             : 'text-white/70 hover:bg-white/10 hover:text-white'
                         }`}
+                        onClick={() => {
+                          // Close sidebar when sub-item is clicked (mobile only)
+                          if (onClose && isMobile) {
+                            onClose()
+                          }
+                        }}
                       >
                         <span className="text-sm font-medium">{subItem.name}</span>
                       </Link>

@@ -6,6 +6,7 @@ import { Store, CreateStoreData } from '@/types/store'
 import { useUploadThing } from '@/lib/uploadthing'
 import { useStore } from '@/components/dashboard/DashboardWrapper'
 import StoreCard from './StoreCard'
+import StoreDetails from './StoreDetails'
 import Link from 'next/link'
 
 interface StoreManagementProps {
@@ -17,6 +18,8 @@ export default function StoreManagement({ onStoreChange, initialMode = 'view' }:
   const [stores, setStores] = useState<Store[]>([])
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [editingStore, setEditingStore] = useState<Store | null>(null)
+  const [selectedStore, setSelectedStore] = useState<Store | null>(null)
+  const [viewMode, setViewMode] = useState<'list' | 'details'>('list')
   const [loading, setLoading] = useState(true)
   const [formData, setFormData] = useState<CreateStoreData>({
     name: '',
@@ -40,6 +43,22 @@ export default function StoreManagement({ onStoreChange, initialMode = 'view' }:
       setIsAddModalOpen(true)
     }
   }, [initialMode])
+
+  const handleViewDetails = (store: Store) => {
+    setSelectedStore(store)
+    setViewMode('details')
+  }
+
+  const handleBackToList = () => {
+    setViewMode('list')
+    setSelectedStore(null)
+  }
+
+  const handleStoreChange = () => {
+    onStoreChange()
+    refreshStores()
+    fetchStores()
+  }
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -461,6 +480,13 @@ export default function StoreManagement({ onStoreChange, initialMode = 'view' }:
             </form>
           </div>
         </div>
+      ) : viewMode === 'details' && selectedStore ? (
+        // Store Details View
+        <StoreDetails
+          store={selectedStore}
+          onStoreChange={handleStoreChange}
+          onBack={handleBackToList}
+        />
       ) : (
         // Normal Store Management View
         <>
@@ -484,7 +510,7 @@ export default function StoreManagement({ onStoreChange, initialMode = 'view' }:
               <StoreCard
                 key={store.id}
                 store={store}
-                onViewDetails={(store) => handleEdit(store)}
+                onViewDetails={handleViewDetails}
               />
             ))}
           </div>

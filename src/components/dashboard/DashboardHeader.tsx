@@ -18,7 +18,7 @@ export default function DashboardHeader({ displayFirstName, showUserButton, onSt
   const [searchQuery, setSearchQuery] = useState('')
 
   return (
-    <header className="sticky top-0 bg-white border-b border-gray-200 px-6 h-16 flex items-center">
+    <header className="sticky top-0 bg-white border-b border-gray-200 px-6 h-16 flex items-center z-20">
       <div className="flex items-center justify-between w-full">
         {/* Mobile Layout */}
         <div className="flex items-center gap-4 lg:hidden">
@@ -68,16 +68,15 @@ export default function DashboardHeader({ displayFirstName, showUserButton, onSt
             </div>
           )}
 
-          {/* Settings Icon */}
+          {/* Search Icon - Always Visible */}
           <button className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors">
             <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </button>
 
-          {/* Notifications Icon with Badge - Desktop Only */}
-          <button className="hidden lg:flex w-10 h-10 bg-gray-100 rounded-full items-center justify-center hover:bg-gray-200 transition-colors relative">
+          {/* Notifications Icon with Badge - Always Visible */}
+          <button className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors relative">
             <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9a6 6 0 0 1 12 0" />
               <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />

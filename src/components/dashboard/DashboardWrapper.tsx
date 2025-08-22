@@ -64,6 +64,7 @@ export default function DashboardWrapper({ children, displayFirstName, showUserB
           onStoreChange={handleStoreChange}
           isOpen={isSidebarOpen}
           onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+          onClose={() => setIsSidebarOpen(false)}
         />
         
         {/* Main Content Area */}
@@ -77,7 +78,7 @@ export default function DashboardWrapper({ children, displayFirstName, showUserB
           />
           
           {/* Main Content */}
-          <main className="relative z-10">
+          <main className="relative z-0">
             <div>
               {children}
             </div>
