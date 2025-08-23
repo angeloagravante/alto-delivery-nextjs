@@ -1,7 +1,7 @@
 'use client'
 
 import TransactionCard from './TransactionCard'
-import type { DetailedOrder } from './DashboardMain'
+import type { DetailedOrder } from '@/components/dashboard/layout'
 
 type Props = {
   transactions: DetailedOrder[]

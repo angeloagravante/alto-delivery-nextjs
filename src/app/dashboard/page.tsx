@@ -1,6 +1,6 @@
 import { currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
-import DashboardMain, { DetailedOrder } from '@/components/dashboard/DashboardMain'
+import { DashboardMain, DetailedOrder } from '@/components/dashboard/layout'
 
 export default async function DashboardPage() {
   // Only check user if Clerk is properly configured

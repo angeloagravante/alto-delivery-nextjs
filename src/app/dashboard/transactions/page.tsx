@@ -1,5 +1,5 @@
-import TransactionGroups from '@/components/dashboard/TransactionGroups'
-import type { DetailedOrder } from '@/components/dashboard/DashboardMain'
+import { TransactionGroups } from '@/components/dashboard/transactions'
+import type { DetailedOrder } from '@/components/dashboard/layout'
 
 export default function TransactionsPage() {
   const tx: DetailedOrder[] = [

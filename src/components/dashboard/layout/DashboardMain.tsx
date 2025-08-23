@@ -1,11 +1,11 @@
 'use client'
 
-import OverviewCards from './OverviewCards'
-import Dashboard, { type DashboardMetrics } from './Dashboard'
-import OrdersTable, { Order } from './OrdersTable'
-import NewOrdersModal from './NewOrdersModal'
-import OrderDetailsModal from './OrderDetailsModal'
-import TransactionList from './TransactionList'
+import { OverviewCards } from '@/components/dashboard/layout'
+import { Dashboard, type DashboardMetrics } from '@/components/dashboard/layout'
+import { OrdersTable, Order } from '@/components/dashboard/orders'
+import { NewOrdersModal } from '@/components/dashboard/orders'
+import { OrderDetailsModal } from '@/components/dashboard/orders'
+import { TransactionList } from '@/components/dashboard/transactions'
 import { useMemo, useState } from 'react'
 
 export type DetailedOrder = Order & {

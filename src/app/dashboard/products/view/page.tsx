@@ -1,15 +1,13 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
-import ProductManagement from '@/components/dashboard/ProductManagement'
-import ProductOverview from '@/components/dashboard/ProductOverview'
-import ProductQuickActions from '@/components/dashboard/ProductQuickActions'
+
+import { ProductManagement, ProductOverview, ProductQuickActions } from '@/components/dashboard/products'
 import { Product } from '@/types/product'
-import { useStore } from '@/components/dashboard/DashboardWrapper'
+import { useStore } from '@/components/dashboard/layout'
 
 export default function ManageProductsPage() {
-  const router = useRouter()
+
   const { currentStore } = useStore()
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)

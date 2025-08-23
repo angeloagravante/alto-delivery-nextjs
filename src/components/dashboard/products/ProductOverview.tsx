@@ -17,17 +17,7 @@ export default function ProductOverview({ products }: ProductOverviewProps) {
   const totalValue = products.reduce((sum, product) => sum + (product.price * product.stock), 0)
   const lowStockProducts = products.filter(product => product.stock <= 10 && product.stock > 0).length
   const outOfStockProducts = products.filter(product => product.stock === 0).length
-  const categories = Array.from(new Set(products.map(p => p.category))).length
 
-  // Get top categories by product count
-  const categoryCounts = products.reduce((acc, product) => {
-    acc[product.category] = (acc[product.category] || 0) + 1
-    return acc
-  }, {} as Record<string, number>)
-
-  const topCategories = Object.entries(categoryCounts)
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 3)
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

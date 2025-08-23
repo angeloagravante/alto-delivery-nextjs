@@ -2,9 +2,9 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import ProductImageUpload from '@/components/dashboard/ProductImageUpload'
+import { ProductImageUpload } from '@/components/dashboard/products'
 import { ProductFormData } from '@/types/product'
-import { useStore } from '@/components/dashboard/DashboardWrapper'
+import { useStore } from '@/components/dashboard/layout'
 
 const categories = [
   'Coffee & Beverages',

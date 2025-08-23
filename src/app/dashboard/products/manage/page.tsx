@@ -1,14 +1,13 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
-import ProductQuickActions from '@/components/dashboard/ProductQuickActions'
-import ProductOverview from '@/components/dashboard/ProductOverview'
+
+import { ProductQuickActions, ProductOverview } from '@/components/dashboard/products'
 import { Product } from '@/types/product'
-import { useStore } from '@/components/dashboard/DashboardWrapper'
+import { useStore } from '@/components/dashboard/layout'
 
 export default function BulkActionsPage() {
-  const router = useRouter()
+
   const { currentStore } = useStore()
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
