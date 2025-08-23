@@ -5,7 +5,7 @@ export interface Product {
   price: number
   category: string
   stock: number
-  imageUrl: string
+  images: string[]
   storeId: string
   createdAt: Date
   updatedAt: Date
@@ -17,6 +17,6 @@ export interface ProductFormData {
   price: number
   category: string
   stock: number
-  imageUrl: string
+  images: string[]
   storeId: string
 }

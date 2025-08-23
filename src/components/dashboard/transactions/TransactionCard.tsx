@@ -1,7 +1,7 @@
 'use client'
 
 import { formatCurrency } from '@/lib/currency'
-import type { DetailedOrder } from './DashboardMain'
+import type { DetailedOrder } from '@/components/dashboard/layout'
 
 type Props = {
   transaction: DetailedOrder

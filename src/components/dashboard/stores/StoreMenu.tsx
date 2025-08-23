@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import { useUser } from '@clerk/nextjs'
 import { Store } from '@/types/store'
-import { useStore } from './DashboardWrapper'
+import { useStore } from '@/components/dashboard/layout'
 
 interface StoreMenuProps {
   onStoreChange: (store: Store | null) => void

@@ -36,15 +36,17 @@ export async function GET() {
     if (!user) {
       try {
         console.log('GET /api/stores - Creating new user for clerkId:', userId)
-        // Create user in database with basic info
-        user = await prisma.user.create({
-          data: {
+        // Use upsert to handle race conditions gracefully
+        user = await prisma.user.upsert({
+          where: { clerkId: userId },
+          update: {}, // Don't update if user exists
+          create: {
             clerkId: userId,
             email: isDemoMode ? 'demo@altodelivery.com' : `user-${userId}@temp.com`, // Temporary email, will be updated by webhook
             name: isDemoMode ? 'Demo User' : 'User', // Temporary name, will be updated by webhook
           }
         })
-        console.log('GET /api/stores - Successfully created user:', user.id)
+        console.log('GET /api/stores - Successfully created/retrieved user:', user.id)
       } catch (error) {
         console.error('GET /api/stores - Error creating user:', error)
         // Check if it's a MongoDB replica set error
@@ -53,7 +55,7 @@ export async function GET() {
             error: 'Database configuration issue. Please contact support.' 
           }, { status: 500 })
         }
-        return NextResponse.json({ error: 'User not found and could not be created' }, { status: 404 })
+        return NextResponse.json({ error: 'User not found and could not be created' }, { status: 500 })
       }
     }
 

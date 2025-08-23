@@ -16,7 +16,7 @@ export async function PUT(
   const { params } = context as { params: { id: string } }
   const { id } = params
     const body = await request.json()
-    const { name, description, price, category, stock, imageUrl } = body
+    const { name, description, price, category, stock, images } = body
 
     // Validation
     if (!name || !description || !price || !category || stock === undefined) {
@@ -29,6 +29,13 @@ export async function PUT(
     if (price <= 0 || stock < 0) {
       return NextResponse.json(
         { error: 'Invalid price or stock values' },
+        { status: 400 }
+      )
+    }
+
+    if (!images || !Array.isArray(images) || images.length === 0) {
+      return NextResponse.json(
+        { error: 'At least one product image is required' },
         { status: 400 }
       )
     }
@@ -67,7 +74,7 @@ export async function PUT(
         price: parseFloat(price),
         category: category.trim(),
         stock: parseInt(stock),
-        imageUrl: imageUrl || '',
+        images: images,
         updatedAt: new Date()
       }
     })

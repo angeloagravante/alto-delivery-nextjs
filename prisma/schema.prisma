@@ -71,7 +71,7 @@ model Product {
   price       Float
   category    String
   stock       Int
-  imageUrl    String
+  images      String[]
   storeId     String   @db.ObjectId
   store       Store    @relation(fields: [storeId], references: [id])
   createdAt   DateTime @default(now())
