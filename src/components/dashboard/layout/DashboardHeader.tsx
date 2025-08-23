@@ -4,8 +4,8 @@ import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { UserButton } from '@clerk/nextjs'
 import { StoreMenu } from '@/components/dashboard/stores'
+import CustomUserButton from './CustomUserButton'
 import { Store } from '@/types/store'
 import { Search, Bell } from 'lucide-react'
 
@@ -92,21 +92,10 @@ export default function DashboardHeader({ displayFirstName, showUserButton, onSt
 
           {/* User Profile Section */}
           <div className="flex items-center gap-3 pl-4 border-l border-gray-200">
-            {showUserButton ? (
-              <UserButton />
-            ) : (
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                  <span className="text-sm font-bold text-gray-600">
-                    {displayFirstName.charAt(0).toUpperCase()}
-                  </span>
-                </div>
-                <div className="hidden sm:block">
-                  <p className="text-sm font-medium text-gray-900">{displayFirstName}</p>
-                  <p className="text-xs text-gray-500">Admin</p>
-                </div>
-              </div>
-            )}
+            <CustomUserButton 
+              displayFirstName={displayFirstName}
+              showUserButton={showUserButton}
+            />
           </div>
         </div>
       </div>
