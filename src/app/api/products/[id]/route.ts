@@ -5,7 +5,7 @@ import type { Prisma } from '@prisma/client'
 
 export async function PUT(
   request: NextRequest,
-  context: unknown
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth()
@@ -14,8 +14,8 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-  const { params } = context as { params: { id: string } }
-  const { id } = params
+    const params = await context.params
+    const { id } = params
     const body = await request.json()
     const { name, description, price, category, stock, images } = body
 
@@ -94,8 +94,8 @@ export async function PUT(
 }
 
 export async function DELETE(
-  request: NextRequest,
-  context: unknown
+  request: Request,
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth()
@@ -104,8 +104,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-  const { params } = context as { params: { id: string } }
-  const { id } = params
+    const params = await context.params
+    const { id } = params
 
     // First find the user by clerkId
     const user = await prisma.user.findUnique({
