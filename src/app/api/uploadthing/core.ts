@@ -21,13 +21,43 @@ export const uploadRouter = {
         return { userId };
       } catch (error) {
         console.error('Upload middleware error:', error);
-        throw new Error("Authentication failed");
+        throw error;
       }
     })
     .onUploadComplete(async ({ metadata, file }) => {
       try {
         console.log('Upload completed:', { file, metadata });
-        return { uploadedBy: metadata.userId, url: file.url };
+        return { uploadedBy: metadata.userId, url: file.ufsUrl || file.url };
+      } catch (error) {
+        console.error('Upload completion error:', error);
+        throw error;
+      }
+    }),
+
+  productImages: f({ 
+    image: { 
+      maxFileSize: "8MB", 
+      maxFileCount: 10
+    } 
+  })
+    .middleware(async () => {
+      try {
+        const { userId } = await auth();
+        if (!userId) {
+          console.error('Upload middleware - No userId found');
+          throw new Error("Unauthorized - User not authenticated");
+        }
+        console.log('Upload middleware - userId:', userId);
+        return { userId };
+      } catch (error) {
+        console.error('Upload middleware error:', error);
+        throw error;
+      }
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      try {
+        console.log('Upload completed:', { file, metadata });
+        return { uploadedBy: metadata.userId, url: file.ufsUrl || file.url };
       } catch (error) {
         console.error('Upload completion error:', error);
         throw error;

@@ -11,16 +11,25 @@ interface EditProductModalProps {
 }
 
 const categories = [
-  'Beverages',
-  'Bakery',
-  'Dairy',
-  'Fruits',
-  'Vegetables',
-  'Meat',
+  'Coffee & Beverages',
+  'Food & Meals',
+  'Clothing & Fashion',
+  'Fruits & Vegetables',
+  'Meat & Poultry',
   'Seafood',
-  'Grains',
-  'Snacks',
-  'Condiments',
+  'Grains & Cereals',
+  'Snacks & Treats',
+  'Condiments & Sauces',
+  'Dairy & Eggs',
+  'Bakery & Pastries',
+  'Frozen Foods',
+  'Canned Goods',
+  'Personal Care',
+  'Household Items',
+  'Electronics',
+  'Books & Stationery',
+  'Sports & Fitness',
+  'Toys & Games',
   'Other'
 ]
 
@@ -31,7 +40,7 @@ export default function EditProductModal({ product, isOpen, onClose, onUpdate }:
     price: '',
     category: '',
     stock: '',
-    imageUrl: ''
+    images: [] as string[]
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -44,7 +53,7 @@ export default function EditProductModal({ product, isOpen, onClose, onUpdate }:
         price: product.price.toString(),
         category: product.category,
         stock: product.stock.toString(),
-        imageUrl: product.imageUrl
+        images: product.images || []
       })
     }
   }, [product])
@@ -59,6 +68,7 @@ export default function EditProductModal({ product, isOpen, onClose, onUpdate }:
     if (!formData.price || parseFloat(formData.price) <= 0) newErrors.price = 'Price must be greater than 0'
     if (!formData.category) newErrors.category = 'Category is required'
     if (!formData.stock || parseInt(formData.stock) < 0) newErrors.stock = 'Stock cannot be negative'
+    if (!formData.images || formData.images.length === 0) newErrors.images = 'At least one product image is required'
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors)
@@ -71,7 +81,7 @@ export default function EditProductModal({ product, isOpen, onClose, onUpdate }:
       price: parseFloat(formData.price),
       category: formData.category,
       stock: parseInt(formData.stock),
-      imageUrl: formData.imageUrl.trim()
+      images: formData.images
     }
 
     onUpdate(product.id, updatedProduct)
@@ -83,7 +93,7 @@ export default function EditProductModal({ product, isOpen, onClose, onUpdate }:
     onClose()
   }
 
-  const handleChange = (field: string, value: string) => {
+  const handleChange = (field: string, value: string | string[]) => {
     setFormData(prev => ({ ...prev, [field]: value }))
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }))
@@ -204,18 +214,47 @@ export default function EditProductModal({ product, isOpen, onClose, onUpdate }:
           </div>
 
           <div>
-            <label htmlFor="edit-imageUrl" className="block text-sm font-medium text-gray-700 mb-1">
-              Image URL
+            <label htmlFor="edit-images" className="block text-sm font-medium text-gray-700 mb-1">
+              Product Images
             </label>
-            <input
-              type="url"
-              id="edit-imageUrl"
-              value={formData.imageUrl}
-              onChange={(e) => handleChange('imageUrl', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1E466A]"
-              placeholder="https://example.com/image.jpg"
-            />
-            <p className="mt-1 text-xs text-gray-500">Leave empty to use a placeholder image</p>
+            <div className="space-y-2">
+              {formData.images.map((image, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <input
+                    type="url"
+                    value={image}
+                    onChange={(e) => {
+                      const newImages = [...formData.images]
+                      newImages[index] = e.target.value
+                      handleChange('images', newImages)
+                    }}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1E466A]"
+                    placeholder="https://example.com/image.jpg"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newImages = formData.images.filter((_, i) => i !== index)
+                      handleChange('images', newImages)
+                    }}
+                    className="px-2 py-2 text-red-600 hover:text-red-800 transition-colors"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => {
+                  const newImages = [...formData.images, '']
+                  handleChange('images', newImages)
+                }}
+                className="text-sm text-[#1E466A] hover:text-[#1E466A]/80 transition-colors"
+              >
+                + Add Image URL
+              </button>
+            </div>
+            {errors.images && <p className="mt-1 text-sm text-red-600">{errors.images}</p>}
           </div>
 
           <div className="flex gap-3 pt-4">

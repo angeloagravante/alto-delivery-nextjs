@@ -10,6 +10,7 @@ import {
   ClipboardList, 
   Users, 
   Building2, 
+  Package,
   Settings,
   ChevronDown,
   X
@@ -55,6 +56,17 @@ export default function DashboardSidebar({ isOpen = false, onToggle, onClose }: 
       name: 'Manage', 
       href: '/dashboard/manage', 
       icon: <MessageCircle className="w-5 h-5" />
+    },
+    { 
+      name: 'Products', 
+      href: '/dashboard/products', 
+      icon: <Package className="w-5 h-5" />,
+      hasDropdown: true,
+      subItems: [
+        { name: 'Add Product', href: '/dashboard/products/add' },
+        { name: 'Manage Products', href: '/dashboard/products/view' },
+        { name: 'Bulk Actions', href: '/dashboard/products/manage' }
+      ]
     },
     { 
       name: 'Orders', 
