@@ -1,10 +1,10 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import type { DetailedOrder } from './DashboardMain'
-import TransactionCard from './TransactionCard'
-import OrdersTable from './OrdersTable'
-import OrderDetailsModal from './OrderDetailsModal'
+import type { DetailedOrder } from '@/components/dashboard/layout'
+import { TransactionCard } from '@/components/dashboard/transactions'
+import { OrdersTable } from '@/components/dashboard/orders'
+import { OrderDetailsModal } from '@/components/dashboard/orders'
 
 type Props = {
   transactions: DetailedOrder[]

@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { Product } from '@/types/product'
 import { formatCurrency } from '@/lib/currency'
-import EditProductModal from './EditProductModal'
+import { EditProductModal } from '@/components/dashboard/modals'
 
 interface ProductManagementProps {
   products: Product[]
@@ -147,7 +148,7 @@ export default function ProductManagement({ products, onUpdate, onDelete }: Prod
 
       {/* Products Display */}
       {viewMode === 'grid' ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {sortedProducts.map((product) => (
             <ProductCard
               key={product.id}
@@ -187,10 +188,12 @@ export default function ProductManagement({ products, onUpdate, onDelete }: Prod
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10">
                           {product.images && product.images.length > 0 ? (
-                            <img
+                            <Image
                               className="h-10 w-10 rounded-full object-cover"
                               src={product.images[0]}
                               alt={product.name}
+                              width={40}
+                              height={40}
                             />
                           ) : (
                             <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
@@ -265,10 +268,11 @@ function ProductCard({ product, onEdit, onDelete }: { product: Product; onEdit: 
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
       <div className="aspect-square bg-gray-100 relative">
         {product.images && product.images.length > 0 ? (
-          <img
+          <Image
             src={product.images[0]}
             alt={product.name}
-            className="w-full h-full object-cover"
+            fill
+            className="object-cover"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">

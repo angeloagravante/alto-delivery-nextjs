@@ -1,7 +1,7 @@
 'use client'
 
-import StoreManagement from '@/components/dashboard/StoreManagement'
-import { useStore } from '@/components/dashboard/DashboardWrapper'
+import { StoreManagement } from '@/components/dashboard/stores'
+import { useStore } from '@/components/dashboard/layout'
 
 export default function AddStorePage() {
   const { setCurrentStore, refreshStores } = useStore()

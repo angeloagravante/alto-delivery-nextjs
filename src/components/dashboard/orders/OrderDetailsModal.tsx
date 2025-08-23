@@ -1,6 +1,6 @@
 'use client'
 
-import type { DetailedOrder } from './DashboardMain'
+import type { DetailedOrder } from '@/components/dashboard/layout'
 import { formatCurrency } from '@/lib/currency'
 
 type OrderDetailsModalProps = {

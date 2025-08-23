@@ -5,7 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { UserButton } from '@clerk/nextjs'
-import StoreMenu from './StoreMenu'
+import { StoreMenu } from '@/components/dashboard/stores'
 import { Store } from '@/types/store'
 import { Search, Bell } from 'lucide-react'
 

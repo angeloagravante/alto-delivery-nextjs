@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Image from 'next/image'
 import { Product } from '@/types/product'
 import { formatCurrency } from '@/lib/currency'
-import EditProductModal from './EditProductModal'
+import { EditProductModal } from '@/components/dashboard/modals'
 
 interface ProductListProps {
   products: Product[]
@@ -41,19 +41,40 @@ export default function ProductList({ products, onUpdate, onDelete }: ProductLis
     )
   }
 
+
+  
   return (
     <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {products.map((product) => (
           <div key={product.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
             <div className="aspect-square bg-gray-100 relative">
               {product.images && product.images.length > 0 ? (
-                <Image
-                  src={product.images[0]}
-                  alt={product.name}
-                  fill
-                  className="object-cover"
-                />
+                <>
+                  <Image
+                    src={product.images[0]}
+                    alt={product.name}
+                    fill
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 20vw"
+                    className="object-cover"
+                    priority={false}
+
+                    onError={(e) => {
+                      console.error('Image failed to load:', product.images[0]);
+                      // Fallback to placeholder on error
+                      e.currentTarget.style.display = 'none';
+                      const fallback = e.currentTarget.parentElement?.querySelector('.image-fallback');
+                      if (fallback) {
+                        (fallback as HTMLElement).style.display = 'flex';
+                      }
+                    }}
+                  />
+                  <div className="image-fallback hidden absolute inset-0 bg-gray-100 flex items-center justify-center">
+                    <svg className="w-12 h-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                </>
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <svg className="w-12 h-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">

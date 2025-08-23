@@ -2,7 +2,7 @@
 
 import type { Order } from './OrdersTable'
 import { formatCurrency } from '@/lib/currency'
-import type { DetailedOrder } from './DashboardMain'
+import type { DetailedOrder } from '@/components/dashboard/layout'
 
 type NewOrdersModalProps = {
   open: boolean

@@ -121,7 +121,7 @@ export default function ProductQuickActions({ products, onBulkUpdate, onBulkDele
       )}
 
       {/* Product Selection Checkboxes */}
-      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
         {products.map((product) => (
           <div key={product.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded-md">
             <input

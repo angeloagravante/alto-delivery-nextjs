@@ -1,5 +1,5 @@
 import { currentUser } from '@clerk/nextjs/server'
-import DashboardWrapper from '@/components/dashboard/DashboardWrapper'
+import { DashboardWrapper } from '@/components/dashboard/layout'
 
 export default async function DashboardLayout({
   children,

@@ -2,7 +2,9 @@
 
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
+import { useUploadThing } from '@/lib/uploadthing';
 import { Upload, X, Eye } from 'lucide-react';
+import Image from 'next/image';
 
 interface ProductImageUploadProps {
   images: string[];
@@ -34,9 +36,10 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
         >
           <X className="h-4 w-4" />
         </button>
-        <img
+        <Image
           src={imageUrl}
           alt={imageName}
+          fill
           className="max-w-full max-h-full object-contain rounded-lg"
         />
       </div>
@@ -59,19 +62,45 @@ const ProductImageUpload: React.FC<ProductImageUploadProps> = ({
     imageName: ''
   });
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
+  const { startUpload } = useUploadThing("productImages", {
+    onClientUploadComplete: (res) => {
+      if (res && res.length > 0) {
+        const newImageUrls = res.map(file => file.url);
+        onImagesChange([...images, ...newImageUrls]);
+        setUploading(false);
+        setUploadProgress(0);
+      }
+    },
+    onUploadError: (error: Error) => {
+      console.error('Upload error:', error);
+      alert('Upload failed. Please try again.');
+      setUploading(false);
+      setUploadProgress(0);
+    },
+    onUploadProgress: (progress) => {
+      setUploadProgress(progress);
+    },
+  });
+
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
     console.log('ProductImageUpload - Received files:', acceptedFiles);
     
-    const newImages = acceptedFiles.map(file => ({
-      url: URL.createObjectURL(file),
-      name: file.name,
-      file
-    }));
-
-    // Convert to string array for compatibility
-    const imageUrls = newImages.map(img => img.url);
-    onImagesChange([...images, ...imageUrls]);
-  }, [images, onImagesChange]);
+    if (acceptedFiles.length === 0) return;
+    
+    setUploading(true);
+    setUploadProgress(0);
+    
+    try {
+      await startUpload(acceptedFiles);
+    } catch (error) {
+      console.error('Upload failed:', error);
+      setUploading(false);
+      setUploadProgress(0);
+    }
+  }, [startUpload]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -114,10 +143,11 @@ const ProductImageUpload: React.FC<ProductImageUploadProps> = ({
             <div key={index} className="relative group bg-white rounded-lg border border-gray-200 shadow-sm">
               <div className="p-2">
                 <div className="relative aspect-square">
-                  <img
+                  <Image
                     src={image}
                     alt={`Product ${index + 1}`}
-                    className="w-full h-full object-cover rounded-md"
+                    fill
+                    className="object-cover rounded-md"
                     onLoad={() => console.log('Regular img loaded successfully:', image)}
                     onError={(e) => console.error('Image failed to load:', image, e)}
                   />
@@ -161,28 +191,48 @@ const ProductImageUpload: React.FC<ProductImageUploadProps> = ({
           className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
             isDragActive
               ? "border-blue-500 bg-blue-50"
+              : uploading
+              ? "border-gray-400 bg-gray-50 cursor-not-allowed"
               : "border-gray-300 hover:border-gray-400 hover:bg-gray-50"
           }`}
         >
-          <input {...getInputProps()} />
+          <input {...getInputProps()} disabled={uploading} />
           <div className="flex flex-col items-center space-y-4">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
-              <Upload className="w-8 h-8 text-gray-400" />
-            </div>
-            <div>
-              <p className="text-lg font-medium text-gray-900">
-                Upload product images
-              </p>
-              <p className="text-sm text-gray-500">
-                Drag & drop or click to select
-              </p>
-            </div>
-            <div className="text-xs text-gray-400">
-              JPEG, PNG, WebP, GIF up to 8MB each
-            </div>
-            <div className="text-sm text-gray-500">
-              {remainingSlots} images remaining
-            </div>
+            {uploading ? (
+              <>
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                </div>
+                <div>
+                  <p className="text-lg font-medium text-blue-900">
+                    Uploading images...
+                  </p>
+                  <p className="text-sm text-blue-500">
+                    {uploadProgress}% complete
+                  </p>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
+                  <Upload className="w-8 h-8 text-gray-400" />
+                </div>
+                <div>
+                  <p className="text-lg font-medium text-gray-900">
+                    Upload product images
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Drag & drop or click to select
+                  </p>
+                </div>
+                <div className="text-xs text-gray-400">
+                  JPEG, PNG, WebP, GIF up to 8MB each
+                </div>
+                <div className="text-sm text-gray-500">
+                  {remainingSlots} images remaining
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
