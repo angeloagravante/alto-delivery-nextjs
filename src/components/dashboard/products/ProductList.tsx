@@ -58,6 +58,7 @@ export default function ProductList({ products, onUpdate, onDelete }: ProductLis
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 20vw"
                     className="object-cover"
                     priority={false}
+                    unoptimized
 
                     onError={(e) => {
                       console.error('Image failed to load:', product.images[0]);

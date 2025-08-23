@@ -41,6 +41,7 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
           alt={imageName}
           fill
           className="max-w-full max-h-full object-contain rounded-lg"
+          unoptimized
         />
       </div>
     </div>
@@ -150,6 +151,7 @@ const ProductImageUpload: React.FC<ProductImageUploadProps> = ({
                     className="object-cover rounded-md"
                     onLoad={() => console.log('Regular img loaded successfully:', image)}
                     onError={(e) => console.error('Image failed to load:', image, e)}
+                    unoptimized
                   />
                   
                   {/* Preview Button */}

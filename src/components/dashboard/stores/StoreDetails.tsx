@@ -237,6 +237,8 @@ export default function StoreDetails({ store, onStoreChange, onBack }: StoreDeta
                           width={96}
                           height={96}
                           className="w-24 h-24 object-cover rounded-lg border border-gray-200" 
+                          unoptimized
+                          onError={() => setLogoUrl('')}
                         />
                         {/* Remove Button - X icon overlay */}
                         <button

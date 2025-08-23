@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
+import type { Prisma } from '@prisma/client'
 
 export async function PUT(
   request: NextRequest,
@@ -66,17 +67,20 @@ export async function PUT(
       )
     }
 
+    // Build update payload and cast through unknown to Prisma type to allow images on Mongo list fields
+    const data = {
+      name: name.trim(),
+      description: description.trim(),
+      price: parseFloat(price),
+      category: category.trim(),
+      stock: parseInt(stock),
+      updatedAt: new Date(),
+      ...(Array.isArray(images) ? { images } : {}),
+    } as unknown as Prisma.ProductUpdateInput
+
     const product = await prisma.product.update({
       where: { id },
-      data: {
-        name: name.trim(),
-        description: description.trim(),
-        price: parseFloat(price),
-        category: category.trim(),
-        stock: parseInt(stock),
-        images: images,
-        updatedAt: new Date()
-      }
+      data,
     })
 
     return NextResponse.json(product)

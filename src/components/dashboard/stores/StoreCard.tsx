@@ -22,6 +22,12 @@ export default function StoreCard({ store, onViewDetails }: StoreCardProps) {
               width={64}
               height={64}
               className="w-16 h-16 rounded-full object-cover mx-auto"
+              unoptimized
+              onError={(e) => {
+                const target = e.target as HTMLImageElement
+                // hide image container if it errors; fallback to default avatar below
+                target.style.display = 'none'
+              }}
             />
           </div>
         ) : (

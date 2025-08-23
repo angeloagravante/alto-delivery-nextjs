@@ -194,6 +194,7 @@ export default function ProductManagement({ products, onUpdate, onDelete }: Prod
                               alt={product.name}
                               width={40}
                               height={40}
+                              unoptimized
                             />
                           ) : (
                             <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
@@ -273,6 +274,7 @@ function ProductCard({ product, onEdit, onDelete }: { product: Product; onEdit: 
             alt={product.name}
             fill
             className="object-cover"
+            unoptimized
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
