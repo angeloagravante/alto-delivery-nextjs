@@ -5,7 +5,7 @@ import { UpdateStoreData } from '@/types/store'
 
 export async function PUT(
   request: NextRequest,
-  context: unknown
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth()
@@ -14,8 +14,8 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-  const { params } = context as { params: { id: string } }
-  const { id } = params
+    const params = await context.params
+    const { id } = params
     const body: UpdateStoreData = await request.json()
     const { name, description, logoUrl, storeType, village, phaseNumber, blockNumber, lotNumber } = body
 

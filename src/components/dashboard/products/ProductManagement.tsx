@@ -1,30 +1,24 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Product } from '@/types/product'
 import { formatCurrency } from '@/lib/currency'
-import { EditProductModal } from '@/components/dashboard/modals'
 
 interface ProductManagementProps {
   products: Product[]
-  onUpdate: (id: string, product: Partial<Product>) => void
   onDelete: (id: string) => void
 }
 
-export default function ProductManagement({ products, onUpdate, onDelete }: ProductManagementProps) {
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null)
+export default function ProductManagement({ products, onDelete }: ProductManagementProps) {
+  const router = useRouter()
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [sortBy, setSortBy] = useState<'name' | 'price' | 'stock' | 'category'>('name')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
 
   const handleEdit = (product: Product) => {
-    setEditingProduct(product)
-  }
-
-  const handleUpdate = (id: string, updatedProduct: Partial<Product>) => {
-    onUpdate(id, updatedProduct)
-    setEditingProduct(null)
+    router.push(`/dashboard/products/edit/${product.id}`)
   }
 
   const handleDelete = (id: string) => {
@@ -249,15 +243,6 @@ export default function ProductManagement({ products, onUpdate, onDelete }: Prod
             </table>
           </div>
         </div>
-      )}
-
-      {editingProduct && (
-        <EditProductModal
-          product={editingProduct}
-          isOpen={true}
-          onClose={() => setEditingProduct(null)}
-          onUpdate={handleUpdate}
-        />
       )}
     </>
   )

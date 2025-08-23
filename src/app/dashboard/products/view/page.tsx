@@ -47,32 +47,6 @@ export default function ManageProductsPage() {
     }
   }, [currentStore, fetchProducts])
 
-  const handleUpdateProduct = async (id: string, updatedProduct: Partial<Product>) => {
-    try {
-      const response = await fetch(`/api/products/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updatedProduct),
-      })
-
-      if (response.ok) {
-        const updated = await response.json()
-        setProducts(products.map(product => 
-          product.id === id ? updated : product
-        ))
-        showMessage('success', 'Product updated successfully!')
-      } else {
-        const error = await response.json()
-        showMessage('error', `Failed to update product: ${error.error}`)
-      }
-    } catch (error) {
-      console.error('Error updating product:', error)
-      showMessage('error', 'Failed to update product')
-    }
-  }
-
   const handleDeleteProduct = async (id: string) => {
     if (confirm('Are you sure you want to delete this product?')) {
       try {
@@ -178,7 +152,6 @@ export default function ManageProductsPage() {
           ) : (
             <ProductManagement 
               products={filteredProducts}
-              onUpdate={handleUpdateProduct}
               onDelete={handleDeleteProduct}
             />
           )}

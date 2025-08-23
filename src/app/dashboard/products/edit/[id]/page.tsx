@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useParams } from 'next/navigation'
 import ProductGalleryUpload from '@/components/dashboard/products/ProductGalleryUpload'
-import { ProductFormData } from '@/types/product'
 import { useStore } from '@/components/dashboard/layout'
+import { Product } from '@/types/product'
 
 const categories = [
   'Coffee & Beverages',
@@ -29,8 +29,10 @@ const categories = [
   'Other'
 ]
 
-export default function AddProductPage() {
+export default function EditProductPage() {
   const router = useRouter()
+  const params = useParams()
+  const productId = params.id as string
   const { currentStore } = useStore()
   const [formData, setFormData] = useState({
     name: '',
@@ -42,6 +44,7 @@ export default function AddProductPage() {
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   const showMessage = (type: 'success' | 'error', text: string) => {
@@ -49,57 +52,116 @@ export default function AddProductPage() {
     setTimeout(() => setMessage(null), 3000)
   }
 
+  // Fetch existing product data
+  useEffect(() => {
+    const fetchProduct = async () => {
+      if (!currentStore || !productId) return
+
+      try {
+        setIsLoading(true)
+        const response = await fetch(`/api/products?storeId=${currentStore.id}`)
+        if (response.ok) {
+          const products: Product[] = await response.json()
+          const product = products.find((p: Product) => p.id === productId)
+          
+          if (product) {
+            setFormData({
+              name: product.name,
+              description: product.description,
+              price: product.price.toString(),
+              category: product.category,
+              stock: product.stock.toString(),
+              images: product.images || []
+            })
+          } else {
+            showMessage('error', 'Product not found')
+            router.push('/dashboard/products/view')
+          }
+        } else {
+          showMessage('error', 'Failed to fetch product')
+          router.push('/dashboard/products/view')
+        }
+      } catch (error) {
+        console.error('Error fetching product:', error)
+        showMessage('error', 'Failed to fetch product')
+        router.push('/dashboard/products/view')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchProduct()
+  }, [currentStore, productId, router])
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {}
+
+    if (!formData.name.trim()) {
+      newErrors.name = 'Product name is required'
+    }
+
+    if (!formData.description.trim()) {
+      newErrors.description = 'Description is required'
+    }
+
+    if (!formData.price || isNaN(Number(formData.price)) || Number(formData.price) <= 0) {
+      newErrors.price = 'Valid price is required'
+    }
+
+    if (!formData.category) {
+      newErrors.category = 'Category is required'
+    }
+
+    if (!formData.stock || isNaN(Number(formData.stock)) || Number(formData.stock) < 0) {
+      newErrors.stock = 'Valid stock quantity is required'
+    }
+
+    if (formData.images.length === 0) {
+      newErrors.images = 'At least one product image is required'
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
-    // Validation
-    const newErrors: Record<string, string> = {}
-    if (!formData.name.trim()) newErrors.name = 'Product name is required'
-    if (!formData.description.trim()) newErrors.description = 'Description is required'
-    if (!formData.price || parseFloat(formData.price) <= 0) newErrors.price = 'Price must be greater than 0'
-    if (!formData.category) newErrors.category = 'Category is required'
-    if (!formData.stock || parseInt(formData.stock) < 0) newErrors.stock = 'Stock cannot be negative'
-    if (formData.images.length === 0) newErrors.images = 'At least one product image is required'
 
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors)
+    if (!validateForm() || !currentStore) {
       return
     }
 
     setIsSubmitting(true)
 
     try {
-      const productData: ProductFormData = {
-        name: formData.name.trim(),
-        description: formData.description.trim(),
-        price: parseFloat(formData.price),
-        category: formData.category,
-        stock: parseInt(formData.stock),
-        images: formData.images,
-        storeId: currentStore!.id
-      }
-
-      const response = await fetch('/api/products', {
-        method: 'POST',
+      const response = await fetch(`/api/products/${productId}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(productData),
+        body: JSON.stringify({
+          name: formData.name.trim(),
+          description: formData.description.trim(),
+          price: parseFloat(formData.price),
+          category: formData.category,
+          stock: parseInt(formData.stock),
+          images: formData.images,
+          storeId: currentStore.id
+        }),
       })
 
       if (response.ok) {
-        showMessage('success', 'Product created successfully!')
-        // Redirect to manage products page after successful creation
+        showMessage('success', 'Product updated successfully!')
         setTimeout(() => {
           router.push('/dashboard/products/view')
         }, 1500)
       } else {
-        const error = await response.json()
-        showMessage('error', `Failed to create product: ${error.error}`)
+        const errorData = await response.json()
+        showMessage('error', errorData.error || 'Failed to update product')
       }
     } catch (error) {
-      console.error('Error creating product:', error)
-      showMessage('error', 'Failed to create product')
+      console.error('Error updating product:', error)
+      showMessage('error', 'Failed to update product')
     } finally {
       setIsSubmitting(false)
     }
@@ -116,6 +178,17 @@ export default function AddProductPage() {
     handleChange('images', images)
   }
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 px-4 py-6">
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1E466A] mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading product...</p>
+        </div>
+      </div>
+    )
+  }
+
   if (!currentStore) {
     return (
       <div className="space-y-6 px-4">
@@ -126,7 +199,7 @@ export default function AddProductPage() {
             </svg>
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">No Store Selected</h3>
-          <p className="text-gray-600">Please select a store from the dropdown above to add products.</p>
+          <p className="text-gray-600">Please select a store from the dropdown above to edit products.</p>
         </div>
       </div>
     )
@@ -146,8 +219,20 @@ export default function AddProductPage() {
       
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Add New Product</h1>
-        <p className="text-gray-600 mt-2">Create a new product for {currentStore.name}</p>
+        <div className="flex items-center gap-4 mb-4">
+          <button
+            onClick={() => router.back()}
+            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Edit Product</h1>
+            <p className="text-gray-600 mt-2">Update product for {currentStore.name}</p>
+          </div>
+        </div>
       </div>
 
       {/* Flexbox Layout - Fixed Width Gallery + Flexible Form */}
@@ -199,9 +284,49 @@ export default function AddProductPage() {
                 className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E466A] focus:border-[#1E466A] transition-colors resize-none ${
                   formData.description ? 'text-gray-900' : 'text-gray-500'
                 } ${errors.description ? 'border-red-500' : 'border-gray-300'}`}
-                placeholder="Enter detailed product description"
+                placeholder="Enter product description"
               />
               {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
+            </div>
+
+            {/* Price and Stock Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Price */}
+              <div>
+                <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-2">
+                  Price ($) *
+                </label>
+                <input
+                  type="number"
+                  id="price"
+                  step="0.01"
+                  value={formData.price}
+                  onChange={(e) => handleChange('price', e.target.value)}
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E466A] focus:border-[#1E466A] transition-colors ${
+                    formData.price ? 'text-gray-900' : 'text-gray-500'
+                  } ${errors.price ? 'border-red-500' : 'border-gray-300'}`}
+                  placeholder="0.00"
+                />
+                {errors.price && <p className="mt-1 text-sm text-red-600">{errors.price}</p>}
+              </div>
+
+              {/* Stock */}
+              <div>
+                <label htmlFor="stock" className="block text-sm font-medium text-gray-700 mb-2">
+                  Stock Quantity *
+                </label>
+                <input
+                  type="number"
+                  id="stock"
+                  value={formData.stock}
+                  onChange={(e) => handleChange('stock', e.target.value)}
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E466A] focus:border-[#1E466A] transition-colors ${
+                    formData.stock ? 'text-gray-900' : 'text-gray-500'
+                  } ${errors.stock ? 'border-red-500' : 'border-gray-300'}`}
+                  placeholder="0"
+                />
+                {errors.stock && <p className="mt-1 text-sm text-red-600">{errors.stock}</p>}
+              </div>
             </div>
 
             {/* Category */}
@@ -217,74 +342,29 @@ export default function AddProductPage() {
                   formData.category ? 'text-gray-900' : 'text-gray-500'
                 } ${errors.category ? 'border-red-500' : 'border-gray-300'}`}
               >
-                <option value="" className="text-gray-500">Select a category</option>
+                <option value="">Select a category</option>
                 {categories.map(category => (
-                  <option key={category} value={category} className="text-gray-900">{category}</option>
+                  <option key={category} value={category}>{category}</option>
                 ))}
               </select>
               {errors.category && <p className="mt-1 text-sm text-red-600">{errors.category}</p>}
             </div>
 
-            {/* Price and Stock - Side by Side */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-2">
-                  Price (PHP) *
-                </label>
-                <div className="relative">
-                  <span className="absolute left-4 top-3 text-gray-500">₱</span>
-                  <input
-                    type="number"
-                    id="price"
-                    value={formData.price}
-                    onChange={(e) => handleChange('price', e.target.value)}
-                    step="0.01"
-                    min="0"
-                    className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E466A] focus:border-[#1E466A] transition-colors ${
-                      formData.price ? 'text-gray-900' : 'text-gray-500'
-                    } ${errors.price ? 'border-red-500' : 'border-gray-300'}`}
-                    placeholder="0.00"
-                  />
-                </div>
-                {errors.price && <p className="mt-1 text-sm text-red-600">{errors.price}</p>}
-              </div>
-
-              <div>
-                <label htmlFor="stock" className="block text-sm font-medium text-gray-700 mb-2">
-                  Stock Quantity *
-                </label>
-                <input
-                  type="number"
-                  id="stock"
-                  value={formData.stock}
-                  onChange={(e) => handleChange('stock', e.target.value)}
-                  min="0"
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E466A] focus:border-[#1E466A] transition-colors ${
-                    formData.stock ? 'text-gray-900' : 'text-gray-500'
-                  } ${errors.stock ? 'border-red-500' : 'border-gray-300'}`}
-                  placeholder="0"
-                />
-                {errors.stock && <p className="mt-1 text-sm text-red-600">{errors.stock}</p>}
-              </div>
-            </div>
-
-            {/* Submit Button */}
-            <div className="pt-6">
+            {/* Action Buttons */}
+            <div className="flex gap-4 pt-6">
+              <button
+                type="button"
+                onClick={() => router.back()}
+                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+              >
+                Cancel
+              </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className={`w-full px-6 py-3 bg-[#1E466A] hover:bg-[#1E466A]/90 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
-                  isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
+                className="flex-1 px-6 py-3 bg-[#1E466A] text-white rounded-lg hover:bg-[#1E466A]/90 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                    Creating Product...
-                  </>
-                ) : (
-                  'Create Product'
-                )}
+                {isSubmitting ? 'Updating...' : 'Update Product'}
               </button>
             </div>
           </form>
