@@ -63,9 +63,8 @@ export default function DashboardSidebar({ isOpen = false, onToggle, onClose }: 
       icon: <Package className="w-5 h-5" />,
       hasDropdown: true,
       subItems: [
-        { name: 'Add Product', href: '/dashboard/products/add' },
-        { name: 'Manage Products', href: '/dashboard/products/view' },
-        { name: 'Bulk Actions', href: '/dashboard/products/manage' }
+  { name: 'Add Product', href: '/dashboard/products/add' },
+  { name: 'Manage Products', href: '/dashboard/products/view' }
       ]
     },
     { 

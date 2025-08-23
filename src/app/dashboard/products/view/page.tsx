@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 
-import { ProductManagement, ProductOverview, ProductQuickActions } from '@/components/dashboard/products'
+import { ProductManagement, ProductOverview } from '@/components/dashboard/products'
 import { Product } from '@/types/product'
 import { useStore } from '@/components/dashboard/layout'
 
@@ -94,59 +94,6 @@ export default function ManageProductsPage() {
     }
   }
 
-  // Bulk operations
-  const handleBulkUpdate = async (productIds: string[], updates: Partial<Product>) => {
-    try {
-      const updatePromises = productIds.map(id => 
-        fetch(`/api/products/${id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(updates),
-        })
-      )
-
-      const responses = await Promise.all(updatePromises)
-      const allSuccessful = responses.every(response => response.ok)
-
-      if (allSuccessful) {
-        setProducts(products.map(product => 
-          productIds.includes(product.id) 
-            ? { ...product, ...updates, updatedAt: new Date() }
-            : product
-        ))
-        showMessage('success', `Successfully updated ${productIds.length} products!`)
-      } else {
-        showMessage('error', 'Some products failed to update')
-      }
-    } catch (error) {
-      console.error('Error in bulk update:', error)
-      showMessage('error', 'Failed to update products')
-    }
-  }
-
-  const handleBulkDelete = async (productIds: string[]) => {
-    if (confirm(`Are you sure you want to delete ${productIds.length} products?`)) {
-      try {
-        const deletePromises = productIds.map(id => 
-          fetch(`/api/products/${id}`, { method: 'DELETE' })
-        )
-
-        const responses = await Promise.all(deletePromises)
-        const allSuccessful = responses.every(response => response.ok)
-
-        if (allSuccessful) {
-          setProducts(products.filter(product => !productIds.includes(product.id)))
-          showMessage('success', `Successfully deleted ${productIds.length} products!`)
-        } else {
-          showMessage('error', 'Some products failed to delete')
-        }
-      } catch (error) {
-        console.error('Error in bulk delete:', error)
-        showMessage('error', 'Failed to delete products')
-      }
-    }
-  }
-
   // Get unique categories from products
   const categories = ['all', ...Array.from(new Set(products.map(p => p.category))).sort()]
   
@@ -191,6 +138,9 @@ export default function ManageProductsPage() {
         </div>
       ) : (
         <>
+          {/* Product Overview - Cards */}
+          <ProductOverview products={filteredProducts} />
+
           {/* Category Filter */}
           <div className="bg-white rounded-lg border border-gray-200 p-4">
             <h3 className="text-sm font-medium text-gray-700 mb-3">Filter by Category</h3>
@@ -210,16 +160,6 @@ export default function ManageProductsPage() {
               ))}
             </div>
           </div>
-
-          {/* Product Overview */}
-          <ProductOverview products={filteredProducts} />
-
-          {/* Quick Actions */}
-          <ProductQuickActions 
-            products={filteredProducts}
-            onBulkUpdate={handleBulkUpdate}
-            onBulkDelete={handleBulkDelete}
-          />
 
           {/* Product Management */}
           {filteredProducts.length === 0 ? (
