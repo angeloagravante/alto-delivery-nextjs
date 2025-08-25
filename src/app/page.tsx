@@ -16,21 +16,40 @@ export default async function Home() {
       // Handle Clerk errors gracefully - running in demo mode
     }
   }
-  
+
   // If user is signed in, redirect based on role
   if (user) {
+    let dbUser;
     try {
-      const dbUser = await prisma.user.findUnique({ where: { clerkId: user.id } })
-      const role = (dbUser as { role?: 'ADMIN' | 'OWNER' | 'CUSTOMER' } | null)?.role ?? 'CUSTOMER'
-  if (role === 'ADMIN') redirect('/admin')
-  if (role === 'OWNER') redirect('/dashboard')
-      redirect('/customer')
-    } catch {
-      redirect('/customer')
+      dbUser = await prisma.user.findUnique({ 
+        where: { clerkId: user.id }
+      }) as { role?: 'ADMIN' | 'OWNER' | 'CUSTOMER'; onboarded?: boolean } | null;
+    } catch (error) {
+      console.error('Database error checking user role:', error);
+      // Fallback to customer on database errors only
+      redirect('/customer');
     }
-  }
+    
+    if (!dbUser) {
+      // User not in database yet - redirect to customer as fallback
+      redirect('/customer');
+    }
 
-  return (
+    // Check if user needs onboarding (should only happen for non-admin users)
+    if (dbUser.onboarded === false && dbUser.role !== 'ADMIN') {
+      redirect('/onboarding/role');
+    }
+
+    // Redirect based on role
+    switch (dbUser.role) {
+      case 'ADMIN':
+        redirect('/admin');
+      case 'OWNER':
+        redirect('/dashboard');
+      default:
+        redirect('/customer');
+    }
+  }  return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Navigation */}
       <nav className="bg-[#1E466A] text-white shadow-lg">

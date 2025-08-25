@@ -70,7 +70,10 @@ export async function POST(req: Request) {
         // Create user in database
         const adminEmail = process.env.ADMIN_EMAIL?.toLowerCase()
         const email = primaryEmail.email_address.toLowerCase()
-    const role = adminEmail && email === adminEmail ? 'ADMIN' : 'CUSTOMER'
+        const role = adminEmail && email === adminEmail ? 'ADMIN' : 'CUSTOMER'
+        // Admin users should be auto-onboarded
+        const onboarded = role === 'ADMIN' ? true : false
+        
         const baseData = {
           clerkId: clerkId,
           email: primaryEmail.email_address,
@@ -80,7 +83,7 @@ export async function POST(req: Request) {
         const user = await prisma.user.create({
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore Prisma Client types may be stale during build in CI
-          data: { ...baseData, role, onboarded: false },
+          data: { ...baseData, role, onboarded },
         })
         
         console.log('✅ User created in database:', user);

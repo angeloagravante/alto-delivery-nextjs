@@ -11,6 +11,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   let user = null
   let displayFirstName = 'Admin'
+  let userImageUrl = null
 
   if (isClerkConfigured) {
     try {
@@ -21,13 +22,14 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       if (dbUser?.role !== 'ADMIN') redirect('/dashboard')
       
       displayFirstName = user.firstName || 'Admin'
+      userImageUrl = user.imageUrl
     } catch {
       redirect('/sign-in')
     }
   }
 
   return (
-    <AdminWrapper displayFirstName={displayFirstName}>
+    <AdminWrapper displayFirstName={displayFirstName} userImageUrl={userImageUrl}>
       {children}
     </AdminWrapper>
   )
