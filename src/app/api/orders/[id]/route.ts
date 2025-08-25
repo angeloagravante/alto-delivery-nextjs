@@ -45,7 +45,7 @@ export async function GET(
       return NextResponse.json({ error: 'Order not found or access denied' }, { status: 404 })
     }
 
-    const { store: _store, ...orderData } = order as any
+  const { store: _omitStore, ...orderData } = order
     return NextResponse.json(orderData)
 
   } catch (error) {
