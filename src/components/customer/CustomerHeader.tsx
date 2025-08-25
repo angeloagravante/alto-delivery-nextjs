@@ -11,10 +11,9 @@ export default function CustomerHeader() {
   return (
   <header className="w-full border-b bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/70 sticky top-0 z-40 text-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-        {/* Logo */}
-        <Link href="/customer" className="flex items-center gap-2">
-          <Image src="/logo.svg" alt="Alto" width={28} height={28} />
-          <span className="font-semibold text-lg text-gray-900">ALTO</span>
+        {/* Logo (matches Dashboard) */}
+        <Link href="/customer" className="flex items-center">
+          <Image src="/logo.svg" alt="Alto Delivery" width={120} height={36} priority />
         </Link>
 
         {/* Location picker (stub) */}
