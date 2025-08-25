@@ -10,8 +10,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const isClerkConfigured = clerkPublishableKey && clerkPublishableKey !== 'pk_test_demo_placeholder_for_build'
 
   let user = null
-  let displayFirstName = 'Admin'
-  let userImageUrl = null
+  // no-op: profile dropdown pulls details client-side
 
   if (isClerkConfigured) {
     try {
@@ -19,17 +18,20 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       if (!user) redirect('/sign-in')
       
       const dbUser = await prisma.user.findUnique({ where: { clerkId: user.id } }) as (| { role?: 'ADMIN'|'OWNER'|'CUSTOMER' } | null)
-      if (dbUser?.role !== 'ADMIN') redirect('/dashboard')
+      if (dbUser?.role !== 'ADMIN') {
+        // Owners should go to dashboard, customers to customer area
+        if (dbUser?.role === 'OWNER') redirect('/dashboard')
+        redirect('/customer')
+      }
       
-      displayFirstName = user.firstName || 'Admin'
-      userImageUrl = user.imageUrl
+  // values used only client-side in shared dropdown
     } catch {
       redirect('/sign-in')
     }
   }
 
   return (
-    <AdminWrapper displayFirstName={displayFirstName} userImageUrl={userImageUrl}>
+    <AdminWrapper>
       {children}
     </AdminWrapper>
   )

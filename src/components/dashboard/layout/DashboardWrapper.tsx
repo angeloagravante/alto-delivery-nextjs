@@ -23,11 +23,9 @@ export const useStore = () => {
 
 interface DashboardWrapperProps {
   children: React.ReactNode
-  displayFirstName: string
-  showUserButton: boolean
 }
 
-export default function DashboardWrapper({ children, displayFirstName, showUserButton }: DashboardWrapperProps) {
+export default function DashboardWrapper({ children }: DashboardWrapperProps) {
   const [currentStore, setCurrentStore] = useState<Store | null>(null)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
@@ -63,8 +61,6 @@ export default function DashboardWrapper({ children, displayFirstName, showUserB
         <div className="ml-0 lg:ml-64 transition-all duration-300 ease-in-out">
           {/* Header */}
           <DashboardHeader 
-            displayFirstName={displayFirstName} 
-            showUserButton={showUserButton}
             onStoreChange={handleStoreChange}
             onBurgerClick={() => setIsSidebarOpen(true)}
           />

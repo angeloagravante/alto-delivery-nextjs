@@ -5,18 +5,16 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { StoreMenu } from '@/components/dashboard/stores'
-import CustomUserButton from './CustomUserButton'
+import ProfileDropdown from '@/components/shared/ProfileDropdown'
 import { Store } from '@/types/store'
 import { Search, Bell } from 'lucide-react'
 
 type DashboardHeaderProps = {
-  displayFirstName: string
-  showUserButton: boolean
   onStoreChange?: (store: Store | null) => void
   onBurgerClick?: () => void
 }
 
-export default function DashboardHeader({ displayFirstName, showUserButton, onStoreChange, onBurgerClick }: DashboardHeaderProps) {
+export default function DashboardHeader({ onStoreChange, onBurgerClick }: DashboardHeaderProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const pathname = usePathname()
 
@@ -90,12 +88,9 @@ export default function DashboardHeader({ displayFirstName, showUserButton, onSt
             </span>
           </button>
 
-          {/* User Profile Section */}
+          {/* User Profile Section (shared) */}
           <div className="flex items-center gap-3 pl-4 border-l border-gray-200">
-            <CustomUserButton 
-              displayFirstName={displayFirstName}
-              showUserButton={showUserButton}
-            />
+            <ProfileDropdown />
           </div>
         </div>
       </div>
