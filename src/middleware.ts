@@ -12,6 +12,7 @@ const isPublicRoute = createRouteMatcher([
   '/sign-in(.*)',
   '/sign-up(.*)',
   '/customer(.*)',
+  // Admin pages are not public; role enforced in layout
   '/onboarding/role',
   // Health checks and webhooks should remain public
   '/api/db/health(.*)',

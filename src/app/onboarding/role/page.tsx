@@ -23,7 +23,8 @@ export default function RoleOnboardingPage() {
         setRole(data.role)
         // If already onboarded, route immediately and skip showing page
         if (data.onboarded) {
-          if (data.role === 'ADMIN' || data.role === 'OWNER') router.replace('/dashboard')
+          if (data.role === 'ADMIN') router.replace('/admin')
+          if (data.role === 'OWNER') router.replace('/dashboard')
           else router.replace('/customer')
           return
         }

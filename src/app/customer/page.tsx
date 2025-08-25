@@ -33,14 +33,14 @@ async function getStores(): Promise<Store[]> {
 export default async function CustomerHomePage() {
   const stores = await getStores()
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 text-gray-900">
       <section className="mb-6">
-        <h1 className="text-2xl font-semibold">Discover Stores</h1>
-        <p className="text-gray-600">Browse nearby stores and start your order.</p>
+    <h1 className="text-2xl font-semibold">Discover Stores</h1>
+    <p className="text-gray-700">Browse nearby stores and start your order.</p>
       </section>
 
       {stores.length === 0 ? (
-        <p className="text-gray-600">No stores available yet.</p>
+    <p className="text-gray-700">No stores available yet.</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {stores.map((s) => (
@@ -55,7 +55,7 @@ export default async function CustomerHomePage() {
                 ) : null}
               </div>
               <h3 className="font-medium text-gray-900">{s.name}</h3>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-700">
                 {s.description ?? `${s.storeType}`}
               </p>
               <p className="mt-1 text-xs text-gray-500">

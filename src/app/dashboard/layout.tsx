@@ -24,8 +24,9 @@ export default async function DashboardLayout({
   if (user) {
     try {
       const dbUser = await prisma.user.findUnique({ where: { clerkId: (user as { id: string }).id } }) as (| { role?: 'ADMIN'|'OWNER'|'CUSTOMER'; onboarded?: boolean } | null)
-      if (dbUser?.onboarded === false) redirect('/onboarding/role')
-      if (dbUser?.role === 'CUSTOMER') redirect('/customer')
+  if (dbUser?.onboarded === false) redirect('/onboarding/role')
+  if (dbUser?.role === 'ADMIN') redirect('/admin')
+  if (dbUser?.role === 'CUSTOMER') redirect('/customer')
     } catch {}
   }
 
