@@ -27,13 +27,17 @@ export default async function DashboardLayout({
       if (dbUser?.onboarded === false && dbUser?.role !== 'ADMIN') redirect('/onboarding/role')
       if (dbUser?.role === 'ADMIN') redirect('/admin')
       if (dbUser?.role === 'CUSTOMER') redirect('/customer')
-    } catch {}
+    } catch {
+      // On any database error, do not render dashboard to be safe
+      redirect('/customer')
+    }
+  } else if (isClerkConfigured) {
+    // If auth is configured and there's no user, require sign-in
+    redirect('/sign-in')
   }
 
-  const displayFirstName = (user as { firstName?: string } | null)?.firstName || 'User';
-
   return (
-    <DashboardWrapper displayFirstName={displayFirstName} showUserButton={Boolean(user)}>
+  <DashboardWrapper>
       {children}
     </DashboardWrapper>
   )

@@ -2,8 +2,9 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { MapPin, ShoppingCart, UserCircle } from 'lucide-react'
+import { MapPin, ShoppingCart } from 'lucide-react'
 import { useCustomer } from './CustomerContext'
+import ProfileDropdown from '@/components/shared/ProfileDropdown'
 
 export default function CustomerHeader() {
   const { location, setLocation, count } = useCustomer()
@@ -41,9 +42,9 @@ export default function CustomerHeader() {
               </span>
             )}
           </Link>
-          <Link href="/profile" className="p-2 rounded-md hover:bg-gray-50" aria-label="Profile">
-            <UserCircle className="w-5 h-5 text-gray-800" />
-          </Link>
+          <div className="pl-2 border-l border-gray-200">
+            <ProfileDropdown />
+          </div>
         </div>
       </div>
     </header>
