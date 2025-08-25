@@ -10,17 +10,13 @@ export const metadata: Metadata = {
 }
 
 export default async function CustomerLayout({ children }: { children: React.ReactNode }) {
-  // If a signed-in user is a store owner (has at least one store), redirect to /dashboard
+  // If a signed-in user is a store owner/admin, redirect to /dashboard; if not onboarded, go to onboarding
   try {
     const { userId } = await auth()
     if (userId) {
-      const user = await prisma.user.findUnique({ where: { clerkId: userId } })
-      if (user) {
-        const count = await prisma.store.count({ where: { userId: user.id } })
-        if (count > 0) {
-          redirect('/dashboard')
-        }
-      }
+      const user = await prisma.user.findUnique({ where: { clerkId: userId } }) as (| { id: string; role?: 'ADMIN'|'OWNER'|'CUSTOMER'; onboarded?: boolean } | null)
+      if (user?.onboarded === false) redirect('/onboarding/role')
+      if (user?.role === 'ADMIN' || user?.role === 'OWNER') redirect('/dashboard')
     }
   } catch {}
 

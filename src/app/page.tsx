@@ -1,6 +1,6 @@
-
 import { currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
+import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 
 export default async function Home() {
@@ -17,9 +17,16 @@ export default async function Home() {
     }
   }
   
-  // If user is signed in, redirect to dashboard
+  // If user is signed in, redirect based on role
   if (user) {
-    redirect('/dashboard')
+    try {
+      const dbUser = await prisma.user.findUnique({ where: { clerkId: user.id } })
+      const role = (dbUser as { role?: 'ADMIN' | 'OWNER' | 'CUSTOMER' } | null)?.role ?? 'CUSTOMER'
+      if (role === 'ADMIN' || role === 'OWNER') redirect('/dashboard')
+      redirect('/customer')
+    } catch {
+      redirect('/customer')
+    }
   }
 
   return (
