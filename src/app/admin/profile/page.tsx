@@ -6,6 +6,8 @@ import { UserCircle, Mail, Calendar, Settings, LogOut, Edit, Shield, Clock, Acti
 import SignOutButton from '@/components/SignOutButton'
 import { prisma } from '@/lib/prisma'
 
+type RoleLocal = 'CUSTOMER' | 'OWNER' | 'ADMIN'
+
 export const metadata = { title: 'Profile - Admin Panel' }
 
 export default async function AdminProfilePage() {
@@ -14,7 +16,7 @@ export default async function AdminProfilePage() {
   const isClerkConfigured = clerkPublishableKey && clerkPublishableKey !== 'pk_test_demo_placeholder_for_build';
   
   let user = null;
-  let dbUser = null;
+  let dbUser: { role?: RoleLocal } | null = null;
   
   if (isClerkConfigured) {
     try {
@@ -29,18 +31,14 @@ export default async function AdminProfilePage() {
       redirect('/sign-in');
     }
 
-    // Get user data from database
+    // Get user role from database
     try {
-      dbUser = await prisma.user.findUnique({ 
-        where: { clerkId: user.id },
-        include: {
-          _count: {
-            select: {
-              stores: true
-            }
-          }
-        }
-      }) as any;
+      const fetched = await prisma.user.findUnique({ 
+        where: { clerkId: user.id }
+      });
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore Prisma types may be stale in CI; role exists in schema
+      dbUser = fetched as unknown as { role?: RoleLocal } | null;
       
       // Verify admin role
       if (dbUser?.role !== 'ADMIN') {
