@@ -28,13 +28,11 @@ export async function GET(
         return NextResponse.json({ error: 'User not found' }, { status: 404 })
       }
     }
-    const order = await prisma.order.findFirst({
-      where: {
-        id: params.id,
-        userId: dbUser.id
-      },
+    const order = await prisma.order.findUnique({
+      where: { id: params.id },
       include: {
-        items: true
+        items: true,
+        store: { select: { userId: true } }
       }
     })
 
@@ -42,7 +40,13 @@ export async function GET(
       return NextResponse.json({ error: 'Order not found' }, { status: 404 })
     }
 
-    return NextResponse.json(order)
+    // Authorize via store ownership
+    if (!order.store || order.store.userId !== dbUser.id) {
+      return NextResponse.json({ error: 'Order not found or access denied' }, { status: 404 })
+    }
+
+    const { store: _store, ...orderData } = order as any
+    return NextResponse.json(orderData)
 
   } catch (error) {
     console.error('Error fetching order:', error)
@@ -77,15 +81,17 @@ export async function PATCH(
     }
     const { status, estimatedDeliveryTime, notes } = await request.json()
 
-    // Verify order exists and belongs to user
-    const existingOrder = await prisma.order.findFirst({
-      where: {
-        id: params.id,
-  userId: dbUser.id
-      }
+    // Verify order exists and is owned via store.userId
+    const existingOrder = await prisma.order.findUnique({
+      where: { id: params.id },
+      include: { store: { select: { userId: true } } }
     })
 
     if (!existingOrder) {
+      return NextResponse.json({ error: 'Order not found or access denied' }, { status: 404 })
+    }
+
+    if (!existingOrder.store || existingOrder.store.userId !== dbUser.id) {
       return NextResponse.json({ error: 'Order not found or access denied' }, { status: 404 })
     }
 
@@ -161,15 +167,17 @@ export async function DELETE(
       }
     }
 
-    // Verify order exists and belongs to user
-    const existingOrder = await prisma.order.findFirst({
-      where: {
-        id: params.id,
-        userId: dbUser.id
-      }
+    // Verify order exists and is owned via store.userId
+    const existingOrder = await prisma.order.findUnique({
+      where: { id: params.id },
+      include: { store: { select: { userId: true } } }
     })
 
     if (!existingOrder) {
+      return NextResponse.json({ error: 'Order not found or access denied' }, { status: 404 })
+    }
+
+    if (!existingOrder.store || existingOrder.store.userId !== dbUser.id) {
       return NextResponse.json({ error: 'Order not found or access denied' }, { status: 404 })
     }
 
