@@ -11,6 +11,7 @@ const isPublicRoute = createRouteMatcher([
   '/',
   '/sign-in(.*)',
   '/sign-up(.*)',
+  '/auth/callback',
   '/customer(.*)',
   // Admin pages are not public; role enforced in layout
   '/onboarding/role',
