@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-  let orders = [] as any[];
+  let orders: unknown[] = [];
     try {
       orders = await prisma.order.findMany({
         where: whereClause,

@@ -3,8 +3,30 @@ import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
 import { CreateStoreData } from '@/types/store'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    // Public browse mode (no auth required)
+    const { searchParams } = new URL(request.url)
+    const isPublic = searchParams.get('public') === '1' || searchParams.get('public') === 'true'
+    if (isPublic) {
+      const stores = await prisma.store.findMany({
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          logoUrl: true,
+          storeType: true,
+          village: true,
+          phaseNumber: true,
+          blockNumber: true,
+          lotNumber: true,
+          createdAt: true
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 50
+      })
+      return NextResponse.json(stores)
+    }
     // Check if we're in demo mode
     const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
     const isDemoMode = !clerkPublishableKey || clerkPublishableKey === 'pk_test_demo_placeholder_for_build'
@@ -116,7 +138,7 @@ export async function GET() {
       hasLogoUrl: !!store.logoUrl
     })))
 
-    return NextResponse.json(stores)
+  return NextResponse.json(stores)
   } catch (error) {
     console.error('GET /api/stores - Error fetching stores:', error)
     // Check if it's a MongoDB replica set error
