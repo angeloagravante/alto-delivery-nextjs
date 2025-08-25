@@ -88,6 +88,23 @@ function CustomSignUpForm() {
     };
   }, []);
 
+  // Handle OAuth callback - check if there's a pending sign up
+  useEffect(() => {
+    if (!isLoaded || !signUp) return;
+
+    // Check if we're coming back from OAuth and there's a pending sign up
+    if (signUp.status === 'complete') {
+      setActive({ session: signUp.createdSessionId })
+        .then(() => {
+          router.push('/dashboard');
+        })
+        .catch((err) => {
+          console.error('Error setting active session:', err);
+          setError('Error completing sign up. Please try again.');
+        });
+    }
+  }, [isLoaded, signUp, setActive, router]);
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     
@@ -152,8 +169,8 @@ function CustomSignUpForm() {
     try {
       await signUp.authenticateWithRedirect({
         strategy,
-        redirectUrl: '/dashboard',
-        redirectUrlComplete: '/dashboard',
+        redirectUrl: `${window.location.origin}/dashboard`,
+        redirectUrlComplete: `${window.location.origin}/dashboard`,
       });
     } catch (err: unknown) {
       const error = err as { errors?: Array<{ message: string }> };

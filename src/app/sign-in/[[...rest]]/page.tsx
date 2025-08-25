@@ -90,6 +90,23 @@ function CustomSignInForm() {
     };
   }, []);
 
+  // Handle OAuth callback - check if there's a pending sign in
+  useEffect(() => {
+    if (!isLoaded || !signIn) return;
+
+    // Check if we're coming back from OAuth and there's a pending sign in
+    if (signIn.status === 'complete') {
+      setActive({ session: signIn.createdSessionId })
+        .then(() => {
+          router.push('/dashboard');
+        })
+        .catch((err) => {
+          console.error('Error setting active session:', err);
+          setError('Error completing sign in. Please try again.');
+        });
+    }
+  }, [isLoaded, signIn, setActive, router]);
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     
@@ -120,13 +137,17 @@ function CustomSignInForm() {
     if (!isLoaded || !signIn) return;
 
     try {
+      // Use authenticateWithRedirect for OAuth providers
       await signIn.authenticateWithRedirect({
         strategy,
-        redirectUrl: '/dashboard',
-        redirectUrlComplete: '/dashboard',
+        redirectUrl: window.location.origin + '/dashboard',
+        redirectUrlComplete: window.location.origin + '/dashboard',
       });
+      
+      // This code won't execute as the redirect happens immediately
     } catch (err: unknown) {
       const error = err as { errors?: Array<{ message: string }> };
+      console.error('Social sign in error:', error);
       setError(error.errors?.[0]?.message || `An error occurred during ${strategy.replace('oauth_', '')} sign in`);
     }
   };
