@@ -12,6 +12,7 @@ const isPublicRoute = createRouteMatcher([
   '/sign-in(.*)',
   '/sign-up(.*)',
   '/customer(.*)',
+  '/onboarding/role',
   // Health checks and webhooks should remain public
   '/api/db/health(.*)',
   '/api/webhooks(.*)',

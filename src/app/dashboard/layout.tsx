@@ -1,4 +1,6 @@
 import { currentUser } from '@clerk/nextjs/server'
+import { prisma } from '@/lib/prisma'
+import { redirect } from 'next/navigation'
 import { DashboardWrapper } from '@/components/dashboard/layout'
 
 export default async function DashboardLayout({
@@ -16,6 +18,15 @@ export default async function DashboardLayout({
     } catch {
       // Ignore Clerk errors in demo mode
     }
+  }
+
+  // If signed in, enforce role routing
+  if (user) {
+    try {
+      const dbUser = await prisma.user.findUnique({ where: { clerkId: (user as { id: string }).id } }) as (| { role?: 'ADMIN'|'OWNER'|'CUSTOMER'; onboarded?: boolean } | null)
+      if (dbUser?.onboarded === false) redirect('/onboarding/role')
+      if (dbUser?.role === 'CUSTOMER') redirect('/customer')
+    } catch {}
   }
 
   const displayFirstName = (user as { firstName?: string } | null)?.firstName || 'User';
