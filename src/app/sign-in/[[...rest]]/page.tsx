@@ -100,7 +100,7 @@ function CustomSignInForm() {
         const res = await fetch('/api/user/role', { cache: 'no-store' })
         const data = await res.json()
         if (data.onboarded) {
-          router.push(data.role === 'ADMIN' || data.role === 'OWNER' ? '/dashboard' : '/customer')
+          router.push(data.role === 'ADMIN' ? '/admin' : data.role === 'OWNER' ? '/dashboard' : '/customer')
         } else {
           router.push('/onboarding/role')
         }
@@ -122,7 +122,7 @@ function CustomSignInForm() {
             const res = await fetch('/api/user/role', { cache: 'no-store' })
             const data = await res.json()
             if (data.onboarded) {
-              router.push(data.role === 'ADMIN' || data.role === 'OWNER' ? '/dashboard' : '/customer')
+              router.push(data.role === 'ADMIN' ? '/admin' : data.role === 'OWNER' ? '/dashboard' : '/customer')
             } else {
               router.push('/onboarding/role')
             }
@@ -146,7 +146,7 @@ function CustomSignInForm() {
           const res = await fetch('/api/user/role', { cache: 'no-store' })
           const data = await res.json()
           if (data.onboarded) {
-            router.push(data.role === 'ADMIN' || data.role === 'OWNER' ? '/dashboard' : '/customer')
+            router.push(data.role === 'ADMIN' ? '/admin' : data.role === 'OWNER' ? '/dashboard' : '/customer')
           } else {
             router.push('/onboarding/role')
           }

@@ -22,7 +22,8 @@ export default async function Home() {
     try {
       const dbUser = await prisma.user.findUnique({ where: { clerkId: user.id } })
       const role = (dbUser as { role?: 'ADMIN' | 'OWNER' | 'CUSTOMER' } | null)?.role ?? 'CUSTOMER'
-      if (role === 'ADMIN' || role === 'OWNER') redirect('/dashboard')
+  if (role === 'ADMIN') redirect('/admin')
+  if (role === 'OWNER') redirect('/dashboard')
       redirect('/customer')
     } catch {
       redirect('/customer')
