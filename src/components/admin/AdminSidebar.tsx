@@ -15,7 +15,10 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   const pathname = usePathname()
   
   const link = (href: string, label: string, Icon: LucideIcon) => {
-    const active = pathname === href || pathname?.startsWith(href + '/')
+    // Special case for overview - only highlight when exactly on /admin
+    const active = href === '/admin' 
+      ? pathname === '/admin'
+      : pathname === href || pathname?.startsWith(href + '/')
     return (
       <Link
         href={href}
