@@ -102,15 +102,15 @@ function CustomSignInForm() {
         
         // Admin users should always be considered onboarded and go to admin
         if (data.role === 'ADMIN') {
-          router.push('/admin')
+          router.replace('/admin')
           return
         }
         
         // For other roles, check onboarding status
         if (data.onboarded) {
-          router.push(data.role === 'OWNER' ? '/dashboard' : '/customer')
+          router.replace(data.role === 'OWNER' ? '/dashboard' : '/customer')
         } else {
-          router.push('/onboarding/role')
+          router.replace('/onboarding/role')
         }
       } catch (error) {
         console.error('Error checking user role:', error)
@@ -119,11 +119,11 @@ function CustomSignInForm() {
         if (res) {
           const data = await res.json().catch(() => ({}))
           if (data.role === 'ADMIN') {
-            router.push('/admin')
+            router.replace('/admin')
             return
           }
         }
-        router.push('/onboarding/role')
+        router.replace('/onboarding/role')
       }
     })()
   }, [userLoaded, user, router]);
@@ -142,19 +142,19 @@ function CustomSignInForm() {
             
             // Admin users should always be considered onboarded and go to admin
             if (data.role === 'ADMIN') {
-              router.push('/admin')
+              router.replace('/admin')
               return
             }
             
             // For other roles, check onboarding status
             if (data.onboarded) {
-              router.push(data.role === 'OWNER' ? '/dashboard' : '/customer')
+              router.replace(data.role === 'OWNER' ? '/dashboard' : '/customer')
             } else {
-              router.push('/onboarding/role')
+              router.replace('/onboarding/role')
             }
           } catch (error) {
             console.error('Error checking user role:', error)
-            router.push('/onboarding/role')
+            router.replace('/onboarding/role')
           }
         })
         .catch(async (err) => {
@@ -166,14 +166,14 @@ function CustomSignInForm() {
               const res = await fetch('/api/user/role', { cache: 'no-store' })
               const data = await res.json()
               if (data.role === 'ADMIN') {
-                router.push('/admin')
+                router.replace('/admin')
               } else if (data.onboarded) {
-                router.push(data.role === 'OWNER' ? '/dashboard' : '/customer')
+                router.replace(data.role === 'OWNER' ? '/dashboard' : '/customer')
               } else {
-                router.push('/onboarding/role')
+                router.replace('/onboarding/role')
               }
             } catch {
-              router.push('/onboarding/role')
+              router.replace('/onboarding/role')
             }
             return
           }
@@ -194,19 +194,19 @@ function CustomSignInForm() {
           
           // Admin users should always be considered onboarded and go to admin
           if (data.role === 'ADMIN') {
-            router.push('/admin')
+            router.replace('/admin')
             return
           }
           
           // For other roles, check onboarding status
           if (data.onboarded) {
-            router.push(data.role === 'OWNER' ? '/dashboard' : '/customer')
+            router.replace(data.role === 'OWNER' ? '/dashboard' : '/customer')
           } else {
-            router.push('/onboarding/role')
+            router.replace('/onboarding/role')
           }
         } catch (error) {
           console.error('Error checking user role:', error)
-          router.push('/onboarding/role')
+          router.replace('/onboarding/role')
         }
       })()
     }
@@ -232,14 +232,14 @@ function CustomSignInForm() {
           const res = await fetch('/api/user/role', { cache: 'no-store' })
           const data = await res.json()
           if (data.role === 'ADMIN') {
-            router.push('/admin')
+            router.replace('/admin')
           } else if (data.onboarded) {
-            router.push(data.role === 'OWNER' ? '/dashboard' : '/customer')
+            router.replace(data.role === 'OWNER' ? '/dashboard' : '/customer')
           } else {
-            router.push('/onboarding/role')
+            router.replace('/onboarding/role')
           }
         } catch {
-          router.push('/onboarding/role')
+          router.replace('/onboarding/role')
         }
       }
     } catch (err: unknown) {
@@ -256,9 +256,9 @@ function CustomSignInForm() {
     try {
       await signIn.authenticateWithRedirect({
         strategy,
-        // Land back on the sign-in page so our client effect can complete the flow
-        redirectUrl: `${window.location.origin}/sign-in`,
-        redirectUrlComplete: `${window.location.origin}/sign-in`,
+  // Land on a neutral callback page to finish the flow without flashing the sign-in UI
+  redirectUrl: `${window.location.origin}/auth/callback`,
+  redirectUrlComplete: `${window.location.origin}/auth/callback`,
       });
     } catch (err: unknown) {
       const error = err as { errors?: Array<{ message: string; code?: string }> };
@@ -271,14 +271,14 @@ function CustomSignInForm() {
           const res = await fetch('/api/user/role', { cache: 'no-store' })
           const data = await res.json()
           if (data.role === 'ADMIN') {
-            router.push('/admin')
+            router.replace('/admin')
           } else if (data.onboarded) {
-            router.push(data.role === 'OWNER' ? '/dashboard' : '/customer')
+            router.replace(data.role === 'OWNER' ? '/dashboard' : '/customer')
           } else {
-            router.push('/onboarding/role')
+            router.replace('/onboarding/role')
           }
         } catch {
-          router.push('/onboarding/role')
+          router.replace('/onboarding/role')
         }
         return;
       }
