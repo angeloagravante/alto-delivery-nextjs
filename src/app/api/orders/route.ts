@@ -4,9 +4,9 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(request: NextRequest) {
   try {
-    const { userId } = await auth()
+  const { userId: clerkUserId } = await auth()
     
-    if (!userId) {
+  if (!clerkUserId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -19,11 +19,30 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Store ID is required' }, { status: 400 })
     }
 
+    // Find the DB user by Clerk ID (and create if missing as a fallback)
+    let dbUser = await prisma.user.findUnique({ where: { clerkId: clerkUserId } })
+    if (!dbUser) {
+      try {
+        dbUser = await prisma.user.upsert({
+          where: { clerkId: clerkUserId },
+          update: {},
+          create: {
+            clerkId: clerkUserId,
+            email: `user-${clerkUserId}@temp.com`,
+            name: 'User'
+          }
+        })
+      } catch (e) {
+        console.error('Failed to create user from clerkId in GET /api/orders:', e)
+        return NextResponse.json({ error: 'User not found' }, { status: 404 })
+      }
+    }
+
     // Verify user owns the store
     const store = await prisma.store.findFirst({
       where: {
         id: storeId,
-        userId: userId
+        userId: dbUser.id
       }
     })
 
@@ -55,25 +74,36 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const orders = await prisma.order.findMany({
-      where: whereClause,
-      include: {
-        items: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true
+  let orders = [] as any[];
+    try {
+      orders = await prisma.order.findMany({
+        where: whereClause,
+        include: {
+          items: true,
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true
+            }
           }
-        }
-      },
-      orderBy: {
-        createdAt: 'desc'
-      },
-      take: limit ? parseInt(limit) : undefined
-    })
+        },
+        orderBy: {
+          createdAt: 'desc'
+        },
+        take: limit ? parseInt(limit) : undefined
+      });
+      console.log('Orders query result:', orders);
+    } catch (dbError) {
+      console.error('Database error fetching orders:', dbError);
+      return NextResponse.json({ error: 'Database error', details: String(dbError) }, { status: 500 });
+    }
 
-    return NextResponse.json(orders)
+    if (!orders || orders.length === 0) {
+      return NextResponse.json([]);
+    }
+
+    return NextResponse.json(orders);
   } catch (error) {
     console.error('Error fetching orders:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -82,9 +112,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth()
+  const { userId: clerkUserId } = await auth()
     
-    if (!userId) {
+  if (!clerkUserId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -103,11 +133,30 @@ export async function POST(request: NextRequest) {
       items
     } = body
 
+    // Find the DB user by Clerk ID (and create if missing)
+    let dbUser = await prisma.user.findUnique({ where: { clerkId: clerkUserId } })
+    if (!dbUser) {
+      try {
+        dbUser = await prisma.user.upsert({
+          where: { clerkId: clerkUserId },
+          update: {},
+          create: {
+            clerkId: clerkUserId,
+            email: `user-${clerkUserId}@temp.com`,
+            name: 'User'
+          }
+        })
+      } catch (e) {
+        console.error('Failed to create user from clerkId in POST /api/orders:', e)
+        return NextResponse.json({ error: 'User not found' }, { status: 404 })
+      }
+    }
+
     // Verify user owns the store
     const store = await prisma.store.findFirst({
       where: {
         id: storeId,
-        userId: userId
+        userId: dbUser.id
       }
     })
 
@@ -116,9 +165,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Create order first, then create items separately
-    const order = await prisma.order.create({
+  const order = await prisma.order.create({
       data: {
-        userId,
+    userId: dbUser.id,
         storeId,
         customerName,
         customerEmail: customerEmail || undefined,

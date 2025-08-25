@@ -7,17 +7,31 @@ export async function GET(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId } = await auth()
+    const { userId: clerkUserId } = await auth()
     
-    if (!userId) {
+    if (!clerkUserId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const params = await context.params
+    // Map Clerk user to DB user
+    let dbUser = await prisma.user.findUnique({ where: { clerkId: clerkUserId } })
+    if (!dbUser) {
+      try {
+        dbUser = await prisma.user.upsert({
+          where: { clerkId: clerkUserId },
+          update: {},
+          create: { clerkId: clerkUserId, email: `user-${clerkUserId}@temp.com`, name: 'User' }
+        })
+      } catch (e) {
+        console.error('GET /api/orders/[id] - user upsert failed:', e)
+        return NextResponse.json({ error: 'User not found' }, { status: 404 })
+      }
+    }
     const order = await prisma.order.findFirst({
       where: {
         id: params.id,
-        userId: userId
+        userId: dbUser.id
       },
       include: {
         items: true
@@ -41,20 +55,33 @@ export async function PATCH(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId } = await auth()
+    const { userId: clerkUserId } = await auth()
     
-    if (!userId) {
+    if (!clerkUserId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const params = await context.params
+    let dbUser = await prisma.user.findUnique({ where: { clerkId: clerkUserId } })
+    if (!dbUser) {
+      try {
+        dbUser = await prisma.user.upsert({
+          where: { clerkId: clerkUserId },
+          update: {},
+          create: { clerkId: clerkUserId, email: `user-${clerkUserId}@temp.com`, name: 'User' }
+        })
+      } catch (e) {
+        console.error('PATCH /api/orders/[id] - user upsert failed:', e)
+        return NextResponse.json({ error: 'User not found' }, { status: 404 })
+      }
+    }
     const { status, estimatedDeliveryTime, notes } = await request.json()
 
     // Verify order exists and belongs to user
     const existingOrder = await prisma.order.findFirst({
       where: {
         id: params.id,
-        userId: userId
+  userId: dbUser.id
       }
     })
 
@@ -113,19 +140,32 @@ export async function DELETE(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId } = await auth()
+    const { userId: clerkUserId } = await auth()
     
-    if (!userId) {
+    if (!clerkUserId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const params = await context.params
+    let dbUser = await prisma.user.findUnique({ where: { clerkId: clerkUserId } })
+    if (!dbUser) {
+      try {
+        dbUser = await prisma.user.upsert({
+          where: { clerkId: clerkUserId },
+          update: {},
+          create: { clerkId: clerkUserId, email: `user-${clerkUserId}@temp.com`, name: 'User' }
+        })
+      } catch (e) {
+        console.error('DELETE /api/orders/[id] - user upsert failed:', e)
+        return NextResponse.json({ error: 'User not found' }, { status: 404 })
+      }
+    }
 
     // Verify order exists and belongs to user
     const existingOrder = await prisma.order.findFirst({
       where: {
         id: params.id,
-        userId: userId
+        userId: dbUser.id
       }
     })
 
