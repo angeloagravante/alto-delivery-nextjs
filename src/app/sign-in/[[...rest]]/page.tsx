@@ -157,7 +157,26 @@ function CustomSignInForm() {
             router.push('/onboarding/role')
           }
         })
-        .catch((err) => {
+        .catch(async (err) => {
+          const msg = err?.errors?.[0]?.message?.toLowerCase?.() || ''
+          const code = err?.errors?.[0]?.code
+          const isSessionExists = code === 'session_exists' || msg.includes('session')
+          if (isSessionExists) {
+            try {
+              const res = await fetch('/api/user/role', { cache: 'no-store' })
+              const data = await res.json()
+              if (data.role === 'ADMIN') {
+                router.push('/admin')
+              } else if (data.onboarded) {
+                router.push(data.role === 'OWNER' ? '/dashboard' : '/customer')
+              } else {
+                router.push('/onboarding/role')
+              }
+            } catch {
+              router.push('/onboarding/role')
+            }
+            return
+          }
           console.error('Error setting active session:', err);
           setError('Error completing sign in. Please try again.');
         });
@@ -209,7 +228,19 @@ function CustomSignInForm() {
 
       if (result.status === 'complete') {
         await setActive({ session: result.createdSessionId });
-        router.push('/dashboard');
+        try {
+          const res = await fetch('/api/user/role', { cache: 'no-store' })
+          const data = await res.json()
+          if (data.role === 'ADMIN') {
+            router.push('/admin')
+          } else if (data.onboarded) {
+            router.push(data.role === 'OWNER' ? '/dashboard' : '/customer')
+          } else {
+            router.push('/onboarding/role')
+          }
+        } catch {
+          router.push('/onboarding/role')
+        }
       }
     } catch (err: unknown) {
       const error = err as { errors?: Array<{ message: string }> };
@@ -225,8 +256,9 @@ function CustomSignInForm() {
     try {
       await signIn.authenticateWithRedirect({
         strategy,
-        redirectUrl: `${window.location.origin}/`,
-        redirectUrlComplete: `${window.location.origin}/`,
+        // Land back on the sign-in page so our client effect can complete the flow
+        redirectUrl: `${window.location.origin}/sign-in`,
+        redirectUrlComplete: `${window.location.origin}/sign-in`,
       });
     } catch (err: unknown) {
       const error = err as { errors?: Array<{ message: string; code?: string }> };
@@ -234,8 +266,20 @@ function CustomSignInForm() {
       
       // Handle "session already exists" error
       if (errorMessage.toLowerCase().includes('session') || error.errors?.[0]?.code === 'session_exists') {
-        // User is already signed in, redirect to dashboard
-        router.push('/dashboard');
+        // Session already active: resolve role and route appropriately
+        try {
+          const res = await fetch('/api/user/role', { cache: 'no-store' })
+          const data = await res.json()
+          if (data.role === 'ADMIN') {
+            router.push('/admin')
+          } else if (data.onboarded) {
+            router.push(data.role === 'OWNER' ? '/dashboard' : '/customer')
+          } else {
+            router.push('/onboarding/role')
+          }
+        } catch {
+          router.push('/onboarding/role')
+        }
         return;
       }
       

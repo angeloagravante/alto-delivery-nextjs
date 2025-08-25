@@ -329,8 +329,9 @@ function CustomSignUpForm() {
     try {
       await signUp.authenticateWithRedirect({
         strategy,
-        redirectUrl: `${window.location.origin}/`,
-        redirectUrlComplete: `${window.location.origin}/`,
+        // Land back on the sign-up page so our client effect can complete the flow
+        redirectUrl: `${window.location.origin}/sign-up`,
+        redirectUrlComplete: `${window.location.origin}/sign-up`,
       });
     } catch (err: unknown) {
       const error = err as { errors?: Array<{ message: string; code?: string }> };
@@ -338,8 +339,20 @@ function CustomSignUpForm() {
       
       // Handle "session already exists" error
       if (errorMessage.toLowerCase().includes('session') || error.errors?.[0]?.code === 'session_exists') {
-        // User is already signed in, redirect to dashboard
-        router.push('/dashboard');
+        // Session already active: resolve role and route appropriately
+        try {
+          const res = await fetch('/api/user/role', { cache: 'no-store' })
+          const data = await res.json()
+          if (data.role === 'ADMIN') {
+            router.push('/admin')
+          } else if (data.onboarded) {
+            router.push(data.role === 'OWNER' ? '/dashboard' : '/customer')
+          } else {
+            router.push('/onboarding/role')
+          }
+        } catch {
+          router.push('/onboarding/role')
+        }
         return;
       }
       
