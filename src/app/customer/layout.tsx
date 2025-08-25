@@ -15,9 +15,9 @@ export default async function CustomerLayout({ children }: { children: React.Rea
     const { userId } = await auth()
     if (userId) {
       const user = await prisma.user.findUnique({ where: { clerkId: userId } }) as (| { id: string; role?: 'ADMIN'|'OWNER'|'CUSTOMER'; onboarded?: boolean } | null)
-  // TEMPORARILY DISABLED: if (user?.onboarded === false) redirect('/onboarding/role')
-  if (user?.role === 'ADMIN') redirect('/admin')
-  if (user?.role === 'OWNER') redirect('/dashboard')
+      if (user?.onboarded === false && user?.role !== 'ADMIN') redirect('/onboarding/role')
+      if (user?.role === 'ADMIN') redirect('/admin')
+      if (user?.role === 'OWNER') redirect('/dashboard')
     }
   } catch {}
 

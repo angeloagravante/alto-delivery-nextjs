@@ -36,9 +36,9 @@ export default async function Home() {
     }
 
     // Check if user needs onboarding (should only happen for non-admin users)
-    // TEMPORARILY DISABLED: if (dbUser.onboarded === false && dbUser.role !== 'ADMIN') {
-    //   redirect('/onboarding/role');
-    // }
+    if (dbUser.onboarded === false && dbUser.role !== 'ADMIN') {
+      redirect('/onboarding/role');
+    }
 
     // Redirect based on role
     switch (dbUser.role) {

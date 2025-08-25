@@ -108,11 +108,11 @@ function CustomSignUpForm() {
         if (data.onboarded) {
           router.push(data.role === 'OWNER' ? '/dashboard' : '/customer')
         } else {
-          // TEMPORARILY DISABLED ONBOARDING: router.push('/onboarding/role'); router.push('/customer')
+          router.push('/onboarding/role')
         }
       } catch (error) {
         console.error('Error checking user role:', error)
-        // TEMPORARILY DISABLED ONBOARDING: router.push('/onboarding/role'); router.push('/customer')
+        router.push('/onboarding/role')
       }
     })()
   }, [userLoaded, user, router]);
@@ -139,10 +139,10 @@ function CustomSignUpForm() {
             if (data.onboarded) {
               router.push(data.role === 'OWNER' ? '/dashboard' : '/customer')
             } else {
-              // TEMPORARILY DISABLED ONBOARDING: router.push('/onboarding/role'); router.push('/customer')
+              router.push('/onboarding/role')
             }
           } catch {
-            // TEMPORARILY DISABLED ONBOARDING: router.push('/onboarding/role'); router.push('/customer')
+            router.push('/onboarding/role')
           }
         })
         .catch((err) => {
@@ -214,11 +214,11 @@ function CustomSignUpForm() {
           if (data.onboarded) {
             router.push(data.role === 'OWNER' ? '/dashboard' : '/customer')
           } else {
-            // TEMPORARILY DISABLED ONBOARDING: router.push('/onboarding/role'); router.push('/customer')
+            router.push('/onboarding/role')
           }
         } catch (error) {
           console.error('Error checking user role:', error)
-          // TEMPORARILY DISABLED ONBOARDING: router.push('/onboarding/role'); router.push('/customer')
+          router.push('/onboarding/role')
         }
       }
     } catch (err: unknown) {
@@ -235,8 +235,8 @@ function CustomSignUpForm() {
     try {
       await signUp.authenticateWithRedirect({
         strategy,
-  redirectUrl: `${window.location.origin}/onboarding/role`,
-  redirectUrlComplete: `${window.location.origin}/onboarding/role`,
+        redirectUrl: `${window.location.origin}/`,
+        redirectUrlComplete: `${window.location.origin}/`,
       });
     } catch (err: unknown) {
       const error = err as { errors?: Array<{ message: string; code?: string }> };

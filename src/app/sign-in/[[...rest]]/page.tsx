@@ -110,8 +110,7 @@ function CustomSignInForm() {
         if (data.onboarded) {
           router.push(data.role === 'OWNER' ? '/dashboard' : '/customer')
         } else {
-          // TEMPORARILY DISABLED ONBOARDING: router.push('/onboarding/role')
-          router.push('/customer')
+          router.push('/onboarding/role')
         }
       } catch (error) {
         console.error('Error checking user role:', error)
@@ -124,8 +123,7 @@ function CustomSignInForm() {
             return
           }
         }
-        // TEMPORARILY DISABLED ONBOARDING: router.push('/onboarding/role')
-        router.push('/customer')
+        router.push('/onboarding/role')
       }
     })()
   }, [userLoaded, user, router]);
@@ -152,13 +150,11 @@ function CustomSignInForm() {
             if (data.onboarded) {
               router.push(data.role === 'OWNER' ? '/dashboard' : '/customer')
             } else {
-              // TEMPORARILY DISABLED ONBOARDING: router.push('/onboarding/role')
-              router.push('/customer')
+              router.push('/onboarding/role')
             }
           } catch (error) {
             console.error('Error checking user role:', error)
-            // TEMPORARILY DISABLED ONBOARDING: router.push('/onboarding/role')
-            router.push('/customer')
+            router.push('/onboarding/role')
           }
         })
         .catch((err) => {
@@ -187,13 +183,11 @@ function CustomSignInForm() {
           if (data.onboarded) {
             router.push(data.role === 'OWNER' ? '/dashboard' : '/customer')
           } else {
-            // TEMPORARILY DISABLED ONBOARDING: router.push('/onboarding/role')
-            router.push('/customer')
+            router.push('/onboarding/role')
           }
         } catch (error) {
           console.error('Error checking user role:', error)
-          // TEMPORARILY DISABLED ONBOARDING: router.push('/onboarding/role')
-          router.push('/customer')
+          router.push('/onboarding/role')
         }
       })()
     }
@@ -231,8 +225,8 @@ function CustomSignInForm() {
     try {
       await signIn.authenticateWithRedirect({
         strategy,
-  redirectUrl: `${window.location.origin}/onboarding/role`,
-  redirectUrlComplete: `${window.location.origin}/onboarding/role`,
+        redirectUrl: `${window.location.origin}/`,
+        redirectUrlComplete: `${window.location.origin}/`,
       });
     } catch (err: unknown) {
       const error = err as { errors?: Array<{ message: string; code?: string }> };
