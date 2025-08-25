@@ -10,6 +10,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  CUSTOMER
+  OWNER
+  ADMIN
+}
+
 model User {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   clerkId     String   @unique
@@ -18,6 +24,8 @@ model User {
   imageUrl    String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  role        Role     @default(CUSTOMER)
+  onboarded   Boolean  @default(false)
   
   // Add more fields as needed for the delivery service
   orders      Order[]
@@ -34,34 +42,51 @@ model Store {
   phaseNumber String
   blockNumber String
   lotNumber   String
+  isActive    Boolean  @default(true)
+  isApproved  Boolean  @default(true)
   userId      String   @db.ObjectId
   user        User     @relation(fields: [userId], references: [id])
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
   products    Product[]
+  orders      Order[]
 }
 
 model Order {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId      String   @db.ObjectId
-  user        User     @relation(fields: [userId], references: [id])
-  status      String   @default("pending")
-  totalAmount Float
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                   String   @id @default(auto()) @map("_id") @db.ObjectId
+  orderNumber          String?  @unique
+  userId               String   @db.ObjectId
+  user                 User     @relation(fields: [userId], references: [id])
+  storeId              String   @db.ObjectId
+  store                Store    @relation(fields: [storeId], references: [id])
+  customerName         String
+  customerEmail        String?
+  customerPhone        String?
+  customerAddress      String
+  status               String   @default("new") // new, accepted, preparing, for_delivery, completed, cancelled, declined
+  paymentMethod        String   // cash, card, online
+  paymentStatus        String   @default("pending") // pending, paid, failed
+  totalAmount          Float
+  notes                String?
+  estimatedDeliveryTime String?
+  completedAt          DateTime?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
   
-  items       OrderItem[]
+  items                OrderItem[]
 }
 
 model OrderItem {
-  id        String @id @default(auto()) @map("_id") @db.ObjectId
-  orderId   String @db.ObjectId
-  order     Order  @relation(fields: [orderId], references: [id])
-  name      String
-  quantity  Int
-  price     Float
-  createdAt DateTime @default(now())
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  orderId     String  @db.ObjectId
+  order       Order   @relation(fields: [orderId], references: [id])
+  productId   String? @db.ObjectId
+  productName String
+  quantity    Int
+  price       Float
+  imageUrl    String?
+  createdAt   DateTime @default(now())
 }
 
 model Product {

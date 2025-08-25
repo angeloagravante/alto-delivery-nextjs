@@ -68,14 +68,23 @@ export async function POST(req: Request) {
         console.log('Primary email found:', primaryEmail.email_address);
         
         // Create user in database
+        const adminEmail = process.env.ADMIN_EMAIL?.toLowerCase()
+        const email = primaryEmail.email_address.toLowerCase()
+        const role = adminEmail && email === adminEmail ? 'ADMIN' : 'CUSTOMER'
+        // Admin users should be auto-onboarded
+        const onboarded = role === 'ADMIN' ? true : false
+        
+        const baseData = {
+          clerkId: clerkId,
+          email: primaryEmail.email_address,
+          name: first_name && last_name ? `${first_name} ${last_name}` : first_name || last_name || null,
+          imageUrl: image_url,
+        }
         const user = await prisma.user.create({
-          data: {
-            clerkId: clerkId,
-            email: primaryEmail.email_address,
-            name: first_name && last_name ? `${first_name} ${last_name}` : first_name || last_name || null,
-            imageUrl: image_url,
-          }
-        });
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore Prisma Client types may be stale during build in CI
+          data: { ...baseData, role, onboarded },
+        })
         
         console.log('✅ User created in database:', user);
       } else {
@@ -101,7 +110,7 @@ export async function POST(req: Request) {
       
       if (primaryEmail) {
         // Update user in database
-        const user = await prisma.user.update({
+  const user = await prisma.user.update({
           where: { clerkId: clerkId },
           data: {
             email: primaryEmail.email_address,

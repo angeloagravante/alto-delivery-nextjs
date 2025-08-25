@@ -65,37 +65,47 @@ function CustomSignUpForm() {
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [username, setUsername] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [showVerification, setShowVerification] = useState(false);
+  const [suppressRedirects, setSuppressRedirects] = useState(false);
   const router = useRouter();
 
-  // Add CAPTCHA element when component mounts
+  // No-op: CAPTCHA element is provided in markup; effect kept for parity
   useEffect(() => {
-    // Create CAPTCHA container if it doesn't exist
-    if (!document.getElementById('clerk-captcha')) {
-      const captchaDiv = document.createElement('div');
-      captchaDiv.id = 'clerk-captcha';
-      captchaDiv.style.display = 'none';
-      document.body.appendChild(captchaDiv);
-    }
-
-    // Cleanup on unmount
-    return () => {
-      const captchaElement = document.getElementById('clerk-captcha');
-      if (captchaElement && captchaElement.parentNode === document.body) {
-        document.body.removeChild(captchaElement);
-      }
-    };
+    // nothing
   }, []);
 
   // Handle existing session case - redirect if user is already signed in
   useEffect(() => {
-    if (userLoaded && user) {
-      router.push('/dashboard');
-    }
-  }, [userLoaded, user, router]);
+    // Don't auto-redirect while we're in the middle of sign-up/verifying
+    if (suppressRedirects || showVerification) return
+    if (!(userLoaded && user)) return
+    ;(async () => {
+      try {
+        const res = await fetch('/api/user/role', { cache: 'no-store' })
+        const data = await res.json()
+        
+        // Admin users should always be considered onboarded and go to admin
+        if (data.role === 'ADMIN') {
+          router.push('/admin')
+          return
+        }
+        
+        // For other roles, check onboarding status
+        if (data.onboarded) {
+          router.push(data.role === 'OWNER' ? '/dashboard' : '/customer')
+        } else {
+          router.push('/onboarding/role')
+        }
+      } catch (error) {
+        console.error('Error checking user role:', error)
+        router.push('/onboarding/role')
+      }
+    })()
+  }, [userLoaded, user, router, suppressRedirects, showVerification]);
 
   // Handle OAuth callback - check if there's a pending sign up
   useEffect(() => {
@@ -104,44 +114,141 @@ function CustomSignUpForm() {
     // Check if we're coming back from OAuth and there's a pending sign up
     if (signUp.status === 'complete') {
       setActive({ session: signUp.createdSessionId })
-        .then(() => {
-          router.push('/dashboard');
+        .then(async () => {
+          // Update profile with collected fields
+          try {
+            await fetch('/api/user/profile', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ firstName, lastName, username }),
+            })
+          } catch {}
+          try {
+            const res = await fetch('/api/user/role', { cache: 'no-store' })
+            const data = await res.json()
+            
+            // Admin users should always be considered onboarded and go to admin
+            if (data.role === 'ADMIN') {
+              router.push('/admin')
+              return
+            }
+            
+            // For other roles, check onboarding status
+            if (data.onboarded) {
+              router.push(data.role === 'OWNER' ? '/dashboard' : '/customer')
+            } else {
+              router.push('/onboarding/role')
+            }
+          } catch {
+            router.push('/onboarding/role')
+          }
         })
-        .catch((err) => {
-          console.error('Error setting active session:', err);
-          setError('Error completing sign up. Please try again.');
+        .catch(async (err) => {
+          // If a session already exists, proceed with redirect logic instead of failing the flow
+          const msg = err?.errors?.[0]?.message?.toLowerCase?.() || ''
+          const code = err?.errors?.[0]?.code
+          const isSessionExists = code === 'session_exists' || msg.includes('session')
+          if (!isSessionExists) {
+            console.error('Error setting active session:', err)
+            setError('Error completing sign up. Please try again.')
+            return
+          }
+          try {
+            const res = await fetch('/api/user/role', { cache: 'no-store' })
+            const data = await res.json()
+            if (data.role === 'ADMIN') {
+              router.push('/admin')
+              return
+            }
+            if (data.onboarded) {
+              router.push(data.role === 'OWNER' ? '/dashboard' : '/customer')
+            } else {
+              router.push('/onboarding/role')
+            }
+          } catch {
+            router.push('/onboarding/role')
+          }
         });
     }
-  }, [isLoaded, signUp, setActive, router]);
+  }, [isLoaded, signUp, setActive, router, firstName, lastName, username]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     
     if (!isLoaded || !signUp) return;
 
-    setIsLoading(true);
-    setError('');
+  // Basic client-side validation (match Clerk required fields)
+  if (!email || !password || !firstName || !lastName || !username) {
+      setError('Please fill in all required fields');
+      return;
+    }
+
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long');
+      return;
+    }
+
+    if (!email.includes('@')) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
+  setIsLoading(true);
+  setError('');
+  setSuppressRedirects(true);
 
     try {
-      const result = await signUp.create({
-        emailAddress: email,
+      // Step 1: create with minimal required fields per Clerk custom flow
+      await signUp.create({
+        emailAddress: email.trim(),
         password,
-        firstName,
-        lastName,
       });
 
-      // Check if we need to handle CAPTCHA or other verifications
-      if (result.status === 'missing_requirements') {
-        // Handle missing requirements (like CAPTCHA)
-        console.log('Missing requirements:', result.missingFields);
-      }
-
-      // Start the verification process
+      // Step 2: email verification (must run right after create)
       await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
-      setShowVerification(true);
+  setShowVerification(true);
+      
+      // Step 3: set profile attributes (names/username) after prepare
+      try {
+        await signUp.update({
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          username: username.trim(),
+        });
+      } catch {}
     } catch (err: unknown) {
-      const error = err as { errors?: Array<{ message: string }> };
-      setError(error.errors?.[0]?.message || 'An error occurred during sign up');
+      console.error('Sign-up error:', err);
+      const error = err as { 
+        errors?: Array<{ 
+          message: string; 
+          longMessage?: string; 
+          code?: string;
+          meta?: { paramName?: string }
+        }> 
+      };
+      
+      // Better error handling with more specific messages
+      if (error.errors && error.errors.length > 0) {
+        const firstError = error.errors[0];
+        let errorMessage = firstError.message;
+        
+        // Handle specific error codes
+        if (firstError.code === 'form_identifier_exists') {
+          errorMessage = 'An account with this email already exists. Please sign in instead.';
+        } else if (firstError.code === 'form_password_pwned') {
+          errorMessage = 'This password has been found in a data breach. Please choose a different password.';
+        } else if (firstError.code === 'form_password_validation_failed') {
+          errorMessage = 'Password does not meet security requirements. Please choose a stronger password.';
+        } else if (firstError.code === 'form_identifier_invalid') {
+          errorMessage = 'Please enter a valid email address.';
+        } else if (firstError.meta?.paramName) {
+          errorMessage = `${firstError.meta.paramName} ${firstError.message}`;
+        }
+        
+        setError(errorMessage);
+      } else {
+        setError('An error occurred during sign up. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -152,8 +259,9 @@ function CustomSignUpForm() {
     
     if (!isLoaded || !signUp) return;
 
-    setIsLoading(true);
-    setError('');
+  setIsLoading(true);
+  setError('');
+  setSuppressRedirects(true);
 
     try {
       const result = await signUp.attemptEmailAddressVerification({
@@ -161,14 +269,57 @@ function CustomSignUpForm() {
       });
 
       if (result.status === 'complete') {
-        await setActive({ session: result.createdSessionId });
-        router.push('/dashboard');
+        // setActive can throw if a session is already active from another tab/window.
+        // If that happens, just continue with the redirect flow.
+        if (result.createdSessionId) {
+          try {
+            await setActive({ session: result.createdSessionId });
+          } catch (e: unknown) {
+            const err = e as { errors?: Array<{ message?: string; code?: string }> }
+            const msg = err.errors?.[0]?.message?.toLowerCase() || ''
+            const code = err.errors?.[0]?.code
+            const isSessionExists = code === 'session_exists' || msg.includes('session')
+            if (!isSessionExists) {
+              throw e
+            }
+            // Ignore and proceed – a valid session already exists
+          }
+        }
+        // Update profile fields post-activation (custom flow guidance)
+        try {
+          await fetch('/api/user/profile', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ firstName, lastName, username }),
+          })
+        } catch {}
+        try {
+          const res = await fetch('/api/user/role', { cache: 'no-store' })
+          const data = await res.json()
+          
+          // Admin users should always be considered onboarded and go to admin
+          if (data.role === 'ADMIN') {
+            router.push('/admin')
+            return
+          }
+          
+          // For other roles, check onboarding status
+          if (data.onboarded) {
+            router.push(data.role === 'OWNER' ? '/dashboard' : '/customer')
+          } else {
+            router.push('/onboarding/role')
+          }
+        } catch (error) {
+          console.error('Error checking user role:', error)
+          router.push('/onboarding/role')
+        }
       }
     } catch (err: unknown) {
       const error = err as { errors?: Array<{ message: string }> };
       setError(error.errors?.[0]?.message || 'Invalid verification code');
     } finally {
       setIsLoading(false);
+      // keep suppressRedirects true until navigation occurs
     }
   };
 
@@ -178,8 +329,8 @@ function CustomSignUpForm() {
     try {
       await signUp.authenticateWithRedirect({
         strategy,
-        redirectUrl: `${window.location.origin}/dashboard`,
-        redirectUrlComplete: `${window.location.origin}/dashboard`,
+        redirectUrl: `${window.location.origin}/`,
+        redirectUrlComplete: `${window.location.origin}/`,
       });
     } catch (err: unknown) {
       const error = err as { errors?: Array<{ message: string; code?: string }> };
@@ -314,6 +465,24 @@ function CustomSignUpForm() {
                 />
               </div>
 
+              {/* Username Input */}
+              <div>
+                <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+                  Username
+                </label>
+                <input
+                  id="username"
+                  name="username"
+                  type="text"
+                  autoComplete="username"
+                  required
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full px-3 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E466A] focus:border-[#1E466A] transition-colors"
+                  placeholder="Choose a username"
+                />
+              </div>
+
               {/* Password Input */}
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
@@ -330,6 +499,9 @@ function CustomSignUpForm() {
                   className="w-full px-3 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E466A] focus:border-[#1E466A] transition-colors"
                   placeholder="Create a password"
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Must be at least 8 characters long
+                </p>
               </div>
 
               {/* Error Message */}
@@ -338,6 +510,17 @@ function CustomSignUpForm() {
                   {error}
                 </div>
               )}
+
+              {/* Smart CAPTCHA container for Clerk (prevents fallback + console error) */}
+              <div className="mt-2">
+                <div
+                  id="clerk-captcha"
+                  className="clerk-captcha"
+                  data-clerk-captcha="true"
+                  data-captcha="smart"
+                  aria-label="Clerk Smart CAPTCHA"
+                />
+              </div>
 
               {/* Sign Up Button */}
               <button

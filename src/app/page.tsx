@@ -1,6 +1,6 @@
-
 import { currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
+import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 
 export default async function Home() {
@@ -16,13 +16,40 @@ export default async function Home() {
       // Handle Clerk errors gracefully - running in demo mode
     }
   }
-  
-  // If user is signed in, redirect to dashboard
-  if (user) {
-    redirect('/dashboard')
-  }
 
-  return (
+  // If user is signed in, redirect based on role
+  if (user) {
+    let dbUser;
+    try {
+      dbUser = await prisma.user.findUnique({ 
+        where: { clerkId: user.id }
+      }) as { role?: 'ADMIN' | 'OWNER' | 'CUSTOMER'; onboarded?: boolean } | null;
+    } catch (error) {
+      console.error('Database error checking user role:', error);
+      // Fallback to customer on database errors only
+      redirect('/customer');
+    }
+    
+    if (!dbUser) {
+      // User not in database yet - redirect to customer as fallback
+      redirect('/customer');
+    }
+
+    // Check if user needs onboarding (should only happen for non-admin users)
+    if (dbUser.onboarded === false && dbUser.role !== 'ADMIN') {
+      redirect('/onboarding/role');
+    }
+
+    // Redirect based on role
+    switch (dbUser.role) {
+      case 'ADMIN':
+        redirect('/admin');
+      case 'OWNER':
+        redirect('/dashboard');
+      default:
+        redirect('/customer');
+    }
+  }  return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Navigation */}
       <nav className="bg-[#1E466A] text-white shadow-lg">

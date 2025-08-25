@@ -1,4 +1,6 @@
 import { currentUser } from '@clerk/nextjs/server'
+import { prisma } from '@/lib/prisma'
+import { redirect } from 'next/navigation'
 import { DashboardWrapper } from '@/components/dashboard/layout'
 
 export default async function DashboardLayout({
@@ -18,10 +20,24 @@ export default async function DashboardLayout({
     }
   }
 
-  const displayFirstName = (user as { firstName?: string } | null)?.firstName || 'User';
+  // If signed in, enforce role routing
+  if (user) {
+    try {
+      const dbUser = await prisma.user.findUnique({ where: { clerkId: (user as { id: string }).id } }) as (| { role?: 'ADMIN'|'OWNER'|'CUSTOMER'; onboarded?: boolean } | null)
+      if (dbUser?.onboarded === false && dbUser?.role !== 'ADMIN') redirect('/onboarding/role')
+      if (dbUser?.role === 'ADMIN') redirect('/admin')
+      if (dbUser?.role === 'CUSTOMER') redirect('/customer')
+    } catch {
+      // On any database error, do not render dashboard to be safe
+      redirect('/customer')
+    }
+  } else if (isClerkConfigured) {
+    // If auth is configured and there's no user, require sign-in
+    redirect('/sign-in')
+  }
 
   return (
-    <DashboardWrapper displayFirstName={displayFirstName} showUserButton={Boolean(user)}>
+  <DashboardWrapper>
       {children}
     </DashboardWrapper>
   )

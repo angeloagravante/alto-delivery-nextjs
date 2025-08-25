@@ -94,9 +94,38 @@ function CustomSignInForm() {
 
   // Handle existing session case - redirect if user is already signed in
   useEffect(() => {
-    if (userLoaded && user) {
-      router.push('/dashboard');
-    }
+    if (!(userLoaded && user)) return
+    ;(async () => {
+      try {
+        const res = await fetch('/api/user/role', { cache: 'no-store' })
+        const data = await res.json()
+        
+        // Admin users should always be considered onboarded and go to admin
+        if (data.role === 'ADMIN') {
+          router.push('/admin')
+          return
+        }
+        
+        // For other roles, check onboarding status
+        if (data.onboarded) {
+          router.push(data.role === 'OWNER' ? '/dashboard' : '/customer')
+        } else {
+          router.push('/onboarding/role')
+        }
+      } catch (error) {
+        console.error('Error checking user role:', error)
+        // Only redirect to onboarding on error if not admin
+        const res = await fetch('/api/user/role', { cache: 'no-store' }).catch(() => null)
+        if (res) {
+          const data = await res.json().catch(() => ({}))
+          if (data.role === 'ADMIN') {
+            router.push('/admin')
+            return
+          }
+        }
+        router.push('/onboarding/role')
+      }
+    })()
   }, [userLoaded, user, router]);
 
   // Handle OAuth callback - check if there's a pending sign in
@@ -106,8 +135,27 @@ function CustomSignInForm() {
     // Check if we're coming back from OAuth and there's a pending sign in
     if (signIn.status === 'complete') {
       setActive({ session: signIn.createdSessionId })
-        .then(() => {
-          router.push('/dashboard');
+        .then(async () => {
+          try {
+            const res = await fetch('/api/user/role', { cache: 'no-store' })
+            const data = await res.json()
+            
+            // Admin users should always be considered onboarded and go to admin
+            if (data.role === 'ADMIN') {
+              router.push('/admin')
+              return
+            }
+            
+            // For other roles, check onboarding status
+            if (data.onboarded) {
+              router.push(data.role === 'OWNER' ? '/dashboard' : '/customer')
+            } else {
+              router.push('/onboarding/role')
+            }
+          } catch (error) {
+            console.error('Error checking user role:', error)
+            router.push('/onboarding/role')
+          }
         })
         .catch((err) => {
           console.error('Error setting active session:', err);
@@ -118,11 +166,30 @@ function CustomSignInForm() {
 
   // Handle existing session case
   useEffect(() => {
-    if (!isLoaded) return;
-    
-    // Check if user is already signed in
+    if (!isLoaded) return
     if (signIn?.status === 'complete' || window.location.search.includes('session_exists')) {
-      router.push('/dashboard');
+      ;(async () => {
+        try {
+          const res = await fetch('/api/user/role', { cache: 'no-store' })
+          const data = await res.json()
+          
+          // Admin users should always be considered onboarded and go to admin
+          if (data.role === 'ADMIN') {
+            router.push('/admin')
+            return
+          }
+          
+          // For other roles, check onboarding status
+          if (data.onboarded) {
+            router.push(data.role === 'OWNER' ? '/dashboard' : '/customer')
+          } else {
+            router.push('/onboarding/role')
+          }
+        } catch (error) {
+          console.error('Error checking user role:', error)
+          router.push('/onboarding/role')
+        }
+      })()
     }
   }, [isLoaded, signIn, router]);
 
@@ -158,8 +225,8 @@ function CustomSignInForm() {
     try {
       await signIn.authenticateWithRedirect({
         strategy,
-        redirectUrl: `${window.location.origin}/dashboard`,
-        redirectUrlComplete: `${window.location.origin}/dashboard`,
+        redirectUrl: `${window.location.origin}/`,
+        redirectUrlComplete: `${window.location.origin}/`,
       });
     } catch (err: unknown) {
       const error = err as { errors?: Array<{ message: string; code?: string }> };

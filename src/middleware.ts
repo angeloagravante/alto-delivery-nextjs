@@ -11,6 +11,9 @@ const isPublicRoute = createRouteMatcher([
   '/',
   '/sign-in(.*)',
   '/sign-up(.*)',
+  '/customer(.*)',
+  // Admin pages are not public; role enforced in layout
+  '/onboarding/role',
   // Health checks and webhooks should remain public
   '/api/db/health(.*)',
   '/api/webhooks(.*)',
@@ -31,6 +34,18 @@ export default isClerkConfigured
         return NextResponse.next()
       }
       
+      // Redirect store owners away from customer section
+      if (req.nextUrl.pathname.startsWith('/customer')) {
+        try {
+          const { userId } = await auth()
+          if (userId) {
+            // We can't access Prisma in middleware, so rely on a lightweight heuristic:
+            // route stays public; server-side layout will enforce with Prisma lookup.
+            // Here we simply pass through.
+          }
+        } catch {}
+      }
+
       // Only protect non-public routes (excludes API routes)
       if (!isPublicRoute(req)) {
         // Establish Clerk context and protect the route
