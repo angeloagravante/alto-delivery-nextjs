@@ -1,6 +1,7 @@
 'use client'
 
 import { useSignUp } from '@clerk/nextjs'
+import { useUser } from '@clerk/nextjs'
 import { useState, FormEvent, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -59,6 +60,7 @@ export default function Page() {
 
 function CustomSignUpForm() {
   const { signUp, setActive, isLoaded } = useSignUp();
+  const { user, isLoaded: userLoaded } = useUser();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
@@ -87,6 +89,13 @@ function CustomSignUpForm() {
       }
     };
   }, []);
+
+  // Handle existing session case - redirect if user is already signed in
+  useEffect(() => {
+    if (userLoaded && user) {
+      router.push('/dashboard');
+    }
+  }, [userLoaded, user, router]);
 
   // Handle OAuth callback - check if there's a pending sign up
   useEffect(() => {
@@ -173,8 +182,17 @@ function CustomSignUpForm() {
         redirectUrlComplete: `${window.location.origin}/dashboard`,
       });
     } catch (err: unknown) {
-      const error = err as { errors?: Array<{ message: string }> };
-      setError(error.errors?.[0]?.message || `An error occurred during ${strategy.replace('oauth_', '')} sign up`);
+      const error = err as { errors?: Array<{ message: string; code?: string }> };
+      const errorMessage = error.errors?.[0]?.message || `An error occurred during ${strategy.replace('oauth_', '')} sign up`;
+      
+      // Handle "session already exists" error
+      if (errorMessage.toLowerCase().includes('session') || error.errors?.[0]?.code === 'session_exists') {
+        // User is already signed in, redirect to dashboard
+        router.push('/dashboard');
+        return;
+      }
+      
+      setError(errorMessage);
     }
   };
 
