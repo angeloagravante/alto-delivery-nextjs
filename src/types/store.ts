@@ -8,6 +8,8 @@ export interface Store {
   phaseNumber: string
   blockNumber: string
   lotNumber: string
+  isActive: boolean
+  isApproved: boolean
   userId: string
   createdAt: Date
   updatedAt: Date

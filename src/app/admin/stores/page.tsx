@@ -97,27 +97,27 @@ export default async function AdminStoresPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        (store as any).isActive 
+                        (store as unknown as { isActive: boolean }).isActive 
                           ? 'bg-green-100 text-green-800' 
                           : 'bg-red-100 text-red-800'
                       }`}>
-                        {(store as any).isActive ? 'Active' : 'Inactive'}
+                        {(store as unknown as { isActive: boolean }).isActive ? 'Active' : 'Inactive'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        (store as any).isApproved 
+                        (store as unknown as { isApproved: boolean }).isApproved 
                           ? 'bg-blue-100 text-blue-800' 
                           : 'bg-yellow-100 text-yellow-800'
                       }`}>
-                        {(store as any).isApproved ? 'Approved' : 'Pending'}
+                        {(store as unknown as { isApproved: boolean }).isApproved ? 'Approved' : 'Pending'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <AdminStoreActions 
                         storeId={store.id} 
-                        isApproved={!!(store as any).isApproved} 
-                        isActive={!!(store as any).isActive} 
+                        isApproved={(store as unknown as { isApproved: boolean }).isApproved} 
+                        isActive={(store as unknown as { isActive: boolean }).isActive} 
                       />
                     </td>
                   </tr>

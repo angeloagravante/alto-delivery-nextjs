@@ -3,6 +3,7 @@ import { currentUser } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import AdminUserActions from '@/components/admin/AdminUserActions'
+import Image from 'next/image'
 
 async function getUsers() {
   // Get current user and verify admin access
@@ -81,9 +82,11 @@ export default async function AdminUsersPage() {
                       <div className="flex items-center">
                         <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mr-3">
                           {user.imageUrl ? (
-                            <img 
+                            <Image 
                               src={user.imageUrl} 
                               alt={user.name || user.email} 
+                              width={40}
+                              height={40}
                               className="w-10 h-10 rounded-full object-cover"
                             />
                           ) : (
@@ -100,22 +103,22 @@ export default async function AdminUsersPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        (user as any).role === 'ADMIN' 
+                        (user as unknown as { role: 'ADMIN' | 'OWNER' | 'CUSTOMER' }).role === 'ADMIN' 
                           ? 'bg-red-100 text-red-800' 
-                          : (user as any).role === 'OWNER'
+                          : (user as unknown as { role: 'ADMIN' | 'OWNER' | 'CUSTOMER' }).role === 'OWNER'
                           ? 'bg-blue-100 text-blue-800'
                           : 'bg-green-100 text-green-800'
                       }`}>
-                        {(user as any).role || 'CUSTOMER'}
+                        {(user as unknown as { role: 'ADMIN' | 'OWNER' | 'CUSTOMER' }).role || 'CUSTOMER'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        (user as any).onboarded 
+                        (user as unknown as { onboarded: boolean }).onboarded 
                           ? 'bg-green-100 text-green-800' 
                           : 'bg-yellow-100 text-yellow-800'
                       }`}>
-                        {(user as any).onboarded ? 'Active' : 'Pending'}
+                        {(user as unknown as { onboarded: boolean }).onboarded ? 'Active' : 'Pending'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -127,7 +130,7 @@ export default async function AdminUsersPage() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <AdminUserActions 
                         userId={user.id} 
-                        role={(user as any).role || 'CUSTOMER'} 
+                        role={(user as unknown as { role: 'ADMIN' | 'OWNER' | 'CUSTOMER' }).role || 'CUSTOMER'} 
                       />
                     </td>
                   </tr>
