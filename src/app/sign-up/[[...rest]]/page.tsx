@@ -143,9 +143,31 @@ function CustomSignUpForm() {
             router.push('/onboarding/role')
           }
         })
-        .catch((err) => {
-          console.error('Error setting active session:', err);
-          setError('Error completing sign up. Please try again.');
+        .catch(async (err) => {
+          // If a session already exists, proceed with redirect logic instead of failing the flow
+          const msg = err?.errors?.[0]?.message?.toLowerCase?.() || ''
+          const code = err?.errors?.[0]?.code
+          const isSessionExists = code === 'session_exists' || msg.includes('session')
+          if (!isSessionExists) {
+            console.error('Error setting active session:', err)
+            setError('Error completing sign up. Please try again.')
+            return
+          }
+          try {
+            const res = await fetch('/api/user/role', { cache: 'no-store' })
+            const data = await res.json()
+            if (data.role === 'ADMIN') {
+              router.push('/admin')
+              return
+            }
+            if (data.onboarded) {
+              router.push(data.role === 'OWNER' ? '/dashboard' : '/customer')
+            } else {
+              router.push('/onboarding/role')
+            }
+          } catch {
+            router.push('/onboarding/role')
+          }
         });
     }
   }, [isLoaded, signUp, setActive, router, firstName, lastName, username]);
@@ -247,7 +269,22 @@ function CustomSignUpForm() {
       });
 
       if (result.status === 'complete') {
-        await setActive({ session: result.createdSessionId });
+        // setActive can throw if a session is already active from another tab/window.
+        // If that happens, just continue with the redirect flow.
+        if (result.createdSessionId) {
+          try {
+            await setActive({ session: result.createdSessionId });
+          } catch (e: unknown) {
+            const err = e as { errors?: Array<{ message?: string; code?: string }> }
+            const msg = err.errors?.[0]?.message?.toLowerCase() || ''
+            const code = err.errors?.[0]?.code
+            const isSessionExists = code === 'session_exists' || msg.includes('session')
+            if (!isSessionExists) {
+              throw e
+            }
+            // Ignore and proceed – a valid session already exists
+          }
+        }
         // Update profile fields post-activation (custom flow guidance)
         try {
           await fetch('/api/user/profile', {
