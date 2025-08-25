@@ -7,11 +7,10 @@ import { Search, Bell, Shield } from 'lucide-react'
 
 type AdminHeaderProps = {
   displayFirstName: string
-  showUserButton: boolean
   onBurgerClick?: () => void
 }
 
-export default function AdminHeader({ displayFirstName, showUserButton, onBurgerClick }: AdminHeaderProps) {
+export default function AdminHeader({ displayFirstName, onBurgerClick }: AdminHeaderProps) {
   const [searchQuery, setSearchQuery] = useState('')
 
   return (
