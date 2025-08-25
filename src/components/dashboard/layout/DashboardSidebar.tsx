@@ -73,8 +73,8 @@ export default function DashboardSidebar({ isOpen = false, onToggle, onClose }: 
       icon: <ClipboardList className="w-5 h-5" />,
       hasDropdown: true,
       subItems: [
-        { name: 'View Orders', href: '/dashboard/orders' },
-        { name: 'New Orders', href: '/dashboard/orders/new' }
+        { name: 'Orders', href: '/dashboard/orders' },
+        { name: 'Completed Orders', href: '/dashboard/orders/completed' }
       ]
     },
     { 
