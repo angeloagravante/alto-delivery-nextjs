@@ -99,13 +99,33 @@ function CustomSignInForm() {
       try {
         const res = await fetch('/api/user/role', { cache: 'no-store' })
         const data = await res.json()
-        if (data.onboarded) {
-          router.push(data.role === 'ADMIN' ? '/admin' : data.role === 'OWNER' ? '/dashboard' : '/customer')
-        } else {
-          router.push('/onboarding/role')
+        
+        // Admin users should always be considered onboarded and go to admin
+        if (data.role === 'ADMIN') {
+          router.push('/admin')
+          return
         }
-      } catch {
-        router.push('/onboarding/role')
+        
+        // For other roles, check onboarding status
+        if (data.onboarded) {
+          router.push(data.role === 'OWNER' ? '/dashboard' : '/customer')
+        } else {
+          // TEMPORARILY DISABLED ONBOARDING: router.push('/onboarding/role')
+          router.push('/customer')
+        }
+      } catch (error) {
+        console.error('Error checking user role:', error)
+        // Only redirect to onboarding on error if not admin
+        const res = await fetch('/api/user/role', { cache: 'no-store' }).catch(() => null)
+        if (res) {
+          const data = await res.json().catch(() => ({}))
+          if (data.role === 'ADMIN') {
+            router.push('/admin')
+            return
+          }
+        }
+        // TEMPORARILY DISABLED ONBOARDING: router.push('/onboarding/role')
+        router.push('/customer')
       }
     })()
   }, [userLoaded, user, router]);
@@ -121,13 +141,24 @@ function CustomSignInForm() {
           try {
             const res = await fetch('/api/user/role', { cache: 'no-store' })
             const data = await res.json()
-            if (data.onboarded) {
-              router.push(data.role === 'ADMIN' ? '/admin' : data.role === 'OWNER' ? '/dashboard' : '/customer')
-            } else {
-              router.push('/onboarding/role')
+            
+            // Admin users should always be considered onboarded and go to admin
+            if (data.role === 'ADMIN') {
+              router.push('/admin')
+              return
             }
-          } catch {
-            router.push('/onboarding/role')
+            
+            // For other roles, check onboarding status
+            if (data.onboarded) {
+              router.push(data.role === 'OWNER' ? '/dashboard' : '/customer')
+            } else {
+              // TEMPORARILY DISABLED ONBOARDING: router.push('/onboarding/role')
+              router.push('/customer')
+            }
+          } catch (error) {
+            console.error('Error checking user role:', error)
+            // TEMPORARILY DISABLED ONBOARDING: router.push('/onboarding/role')
+            router.push('/customer')
           }
         })
         .catch((err) => {
@@ -145,13 +176,24 @@ function CustomSignInForm() {
         try {
           const res = await fetch('/api/user/role', { cache: 'no-store' })
           const data = await res.json()
-          if (data.onboarded) {
-            router.push(data.role === 'ADMIN' ? '/admin' : data.role === 'OWNER' ? '/dashboard' : '/customer')
-          } else {
-            router.push('/onboarding/role')
+          
+          // Admin users should always be considered onboarded and go to admin
+          if (data.role === 'ADMIN') {
+            router.push('/admin')
+            return
           }
-        } catch {
-          router.push('/onboarding/role')
+          
+          // For other roles, check onboarding status
+          if (data.onboarded) {
+            router.push(data.role === 'OWNER' ? '/dashboard' : '/customer')
+          } else {
+            // TEMPORARILY DISABLED ONBOARDING: router.push('/onboarding/role')
+            router.push('/customer')
+          }
+        } catch (error) {
+          console.error('Error checking user role:', error)
+          // TEMPORARILY DISABLED ONBOARDING: router.push('/onboarding/role')
+          router.push('/customer')
         }
       })()
     }

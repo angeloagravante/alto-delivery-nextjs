@@ -81,7 +81,7 @@ export default function AdminHeader({ displayFirstName, onBurgerClick }: AdminHe
           </div>
 
           {/* User Profile Section */}
-          <div className="flex items-center gap-3 pl-4 border-l border-gray-200">
+          <Link href="/profile" className="flex items-center gap-3 pl-4 border-l border-gray-200 hover:bg-gray-50 rounded-lg transition-colors p-2">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                 <span className="text-sm font-medium text-blue-700">
@@ -92,7 +92,7 @@ export default function AdminHeader({ displayFirstName, onBurgerClick }: AdminHe
                 {displayFirstName}
               </span>
             </div>
-          </div>
+          </Link>
         </div>
       </div>
     </header>

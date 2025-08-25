@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { UserCircle, Mail, Calendar, Settings, LogOut, Edit } from 'lucide-react'
 import SignOutButton from '@/components/SignOutButton'
 import RoleSwitcher from '@/components/profile/RoleSwitcher'
+import { prisma } from '@/lib/prisma'
 
 export default async function ProfilePage() {
   // Check if Clerk is properly configured
@@ -12,6 +13,8 @@ export default async function ProfilePage() {
   const isClerkConfigured = clerkPublishableKey && clerkPublishableKey !== 'pk_test_demo_placeholder_for_build';
   
   let user = null;
+  let userRole = 'CUSTOMER';
+  
   if (isClerkConfigured) {
     try {
       user = await currentUser();
@@ -22,6 +25,16 @@ export default async function ProfilePage() {
     // If Clerk is configured but no user, redirect to sign-in
     if (!user) {
       redirect('/sign-in');
+    }
+
+    // Get user role from database
+    try {
+      const dbUser = await prisma.user.findUnique({ 
+        where: { clerkId: user.id } 
+      }) as ({ role?: 'ADMIN'|'OWNER'|'CUSTOMER' } | null)
+      userRole = dbUser?.role || 'CUSTOMER';
+    } catch {
+      // Handle database errors gracefully
     }
   }
   
@@ -39,6 +52,10 @@ export default async function ProfilePage() {
   const email = displayUser.emailAddresses?.[0]?.emailAddress || '';
   const joinDate = displayUser.createdAt ? new Date(displayUser.createdAt).toLocaleDateString() : 'N/A';
 
+  // Determine back link based on user role
+  const backLink = userRole === 'ADMIN' ? '/admin' : '/dashboard';
+  const backText = userRole === 'ADMIN' ? 'Back to Admin Panel' : 'Back to Dashboard';
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Header */}
@@ -47,13 +64,13 @@ export default async function ProfilePage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Link 
-                href="/dashboard"
+                href={backLink}
                 className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
-                Back to Dashboard
+                {backText}
               </Link>
             </div>
             <div className="flex items-center gap-2">
@@ -156,7 +173,7 @@ export default async function ProfilePage() {
                   </button>
                   
                   <Link 
-                    href="/dashboard" 
+                    href={backLink} 
                     className="w-full flex items-center gap-3 p-4 text-left border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                   >
                     <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -164,8 +181,12 @@ export default async function ProfilePage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5v14M16 5v14" />
                     </svg>
                     <div>
-                      <p className="font-medium text-gray-900">Go to Dashboard</p>
-                      <p className="text-sm text-gray-500">Return to your main dashboard</p>
+                      <p className="font-medium text-gray-900">
+                        {userRole === 'ADMIN' ? 'Go to Admin Panel' : 'Go to Dashboard'}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {userRole === 'ADMIN' ? 'Return to your admin panel' : 'Return to your main dashboard'}
+                      </p>
                     </div>
                   </Link>
                 </div>
