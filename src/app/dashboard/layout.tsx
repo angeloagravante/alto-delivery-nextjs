@@ -25,7 +25,6 @@ export default async function DashboardLayout({
     try {
       const dbUser = await prisma.user.findUnique({ where: { clerkId: (user as { id: string }).id } }) as (| { role?: 'ADMIN'|'OWNER'|'CUSTOMER'; onboarded?: boolean } | null)
       if (dbUser?.onboarded === false && dbUser?.role !== 'ADMIN') redirect('/onboarding/role')
-      if (dbUser?.role === 'ADMIN') redirect('/admin')
       if (dbUser?.role === 'CUSTOMER') redirect('/customer')
     } catch {
       // On any database error, do not render dashboard to be safe
