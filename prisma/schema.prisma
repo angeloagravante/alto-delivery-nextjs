@@ -16,6 +16,18 @@ enum Role {
   ADMIN
 }
 
+// Optional UI enums to keep values consistent
+enum LayoutDensity {
+  COMFORTABLE
+  COMPACT
+}
+
+enum ThemeMode {
+  LIGHT
+  DARK
+  SYSTEM
+}
+
 
 model User {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
@@ -110,6 +122,18 @@ model SystemConfig {
   backupSchedule   String?
   dataRetentionDays Int?
   lastBackupAt     DateTime?
+  // --- UI Customization ---
+  uiBrandName      String?
+  uiThemeMode      ThemeMode        @default(SYSTEM)
+  uiThemePrimary   String?          // Hex or CSS color var
+  uiThemeAccent    String?          // Hex or CSS color var
+  uiLogoLightUrl   String?
+  uiLogoDarkUrl    String?
+  uiFaviconUrl     String?
+  uiLayoutDensity  LayoutDensity    @default(COMFORTABLE)
+  uiCustomCssEnabled Boolean        @default(false)
+  uiCustomCss      String?
+
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 }

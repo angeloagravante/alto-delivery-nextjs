@@ -7,7 +7,7 @@ type Config = {
   dataRetentionDays?: number | null
 }
 
-export default function SystemConfigModal({ triggerClassName = '' }: { triggerClassName?: string }) {
+export default function SystemConfigModal({ openEventName }: { openEventName?: string }) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -36,6 +36,15 @@ export default function SystemConfigModal({ triggerClassName = '' }: { triggerCl
     if (open) load()
   }, [open])
 
+  useEffect(() => {
+    if (!openEventName) return
+    const handler = () => setOpen(true)
+    if (typeof window !== 'undefined') window.addEventListener(openEventName, handler as EventListener)
+    return () => {
+      if (typeof window !== 'undefined') window.removeEventListener(openEventName, handler as EventListener)
+    }
+  }, [openEventName])
+
   const save = async () => {
     try {
       setSaving(true)
@@ -60,10 +69,7 @@ export default function SystemConfigModal({ triggerClassName = '' }: { triggerCl
   }
 
   return (
-    <div className="inline">
-      <button className={triggerClassName || 'text-xs text-blue-600 hover:text-blue-800 font-medium'} onClick={() => setOpen(true)}>
-        Configure
-      </button>
+  <div className="inline">
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/20" onClick={() => !saving && setOpen(false)} />

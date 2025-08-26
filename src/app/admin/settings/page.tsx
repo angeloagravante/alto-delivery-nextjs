@@ -1,9 +1,33 @@
+"use client"
+
 import { Settings, Database, Shield, Globe, Palette, Zap } from 'lucide-react'
 import DbConnectionStatus from '@/components/admin/DbConnectionStatus'
 import SystemConfigSummary from '@/components/admin/SystemConfigSummary'
 import SystemConfigModal from '@/components/admin/SystemConfigModal'
+import ConfigModal, { FieldDef } from '@/components/admin/ConfigModal'
 
 export default function AdminSettingsPage() {
+  // Fields definition for the UI Customization modal (single hidden instance below)
+  const uiFields: FieldDef[] = [
+    { name: 'uiBrandName', label: 'Brand name', type: 'text', placeholder: 'Alto Delivery' },
+    { name: 'uiThemeMode', label: 'Theme mode', type: 'select', options: [
+      { label: 'System', value: 'SYSTEM' },
+      { label: 'Light', value: 'LIGHT' },
+      { label: 'Dark', value: 'DARK' },
+    ] },
+    { name: 'uiThemePrimary', label: 'Primary color', type: 'color' },
+    { name: 'uiThemeAccent', label: 'Accent color', type: 'color' },
+  { name: 'uiLogoLightUrl', label: 'Logo (light)', type: 'image', placeholder: '/logo.svg' },
+  { name: 'uiLogoDarkUrl', label: 'Logo (dark)', type: 'image', placeholder: '/logo-white.svg' },
+  { name: 'uiFaviconUrl', label: 'Favicon', type: 'image', placeholder: '/favicon.ico' },
+    { name: 'uiLayoutDensity', label: 'Layout density', type: 'select', options: [
+      { label: 'Comfortable', value: 'COMFORTABLE' },
+      { label: 'Compact', value: 'COMPACT' },
+    ] },
+    { name: 'uiCustomCssEnabled', label: 'Custom CSS', type: 'toggle' },
+    { name: 'uiCustomCss', label: 'Custom CSS content', type: 'textarea', placeholder: '/* .btn { border-radius: 8px } */', helpText: 'Be cautious—invalid CSS can affect layout.' },
+  ]
+
   const settingSections = [
     {
       title: 'Platform Settings',
@@ -19,7 +43,7 @@ export default function AdminSettingsPage() {
       icon: Database,
       color: 'bg-green-50 text-green-700',
       iconBg: 'bg-green-100',
-              items: ['Connection status', 'Backup schedules', 'Data retention']
+  items: ['Connection status', 'Backup schedules', 'Data retention']
     },
     {
       title: 'Security Settings',
@@ -76,25 +100,60 @@ export default function AdminSettingsPage() {
             </div>
             
             <div className="space-y-2">
-              {section.items.map((item, index) => (
-                <div key={index} className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm text-gray-700">{item}</span>
-                  {section.title === 'Database Configuration' ? (
-                    <div className="flex items-center gap-3">
-                      {item === 'Connection status' && <DbConnectionStatus />}
-                      {item === 'Backup schedules' && <SystemConfigSummary field="backupSchedule" />}
-                      {item === 'Data retention' && <SystemConfigSummary field="dataRetentionDays" />}
-                      {item !== 'Connection status' && <SystemConfigModal />}
-                    </div>
-                  ) : (
-                    <button className="text-xs text-blue-600 hover:text-blue-800 font-medium">Configure</button>
-                  )}
-                </div>
-              ))}
+              {section.items.map((item, index) => {
+                const isDbSection = section.title === 'Database Configuration'
+                const isUiSection = section.title === 'UI Customization'
+                const clickable = (isDbSection && item !== 'Connection status') || isUiSection
+                const handleClick = () => {
+                  if (isDbSection && item !== 'Connection status') {
+                    if (typeof window !== 'undefined') window.dispatchEvent(new Event('open:db-configuration'))
+                  } else if (isUiSection) {
+                    if (typeof window !== 'undefined') window.dispatchEvent(new Event('open:ui-customization'))
+                  }
+                }
+                return (
+                  <div
+                    key={index}
+                    className={`flex items-center justify-between py-2 px-3 rounded-lg ${clickable ? 'bg-gray-50 hover:bg-gray-100 cursor-pointer' : 'bg-gray-50'}`}
+                    onClick={clickable ? handleClick : undefined}
+                  >
+                    <span className="text-sm text-gray-700">{item}</span>
+                    {isDbSection ? (
+                      <div className="flex items-center gap-3">
+                        {item === 'Connection status' && <DbConnectionStatus />}
+                        {item === 'Backup schedules' && <SystemConfigSummary field="backupSchedule" />}
+                        {item === 'Data retention' && <SystemConfigSummary field="dataRetentionDays" />}
+                      </div>
+                    ) : isUiSection ? (
+                      <div className="flex items-center gap-3">
+                        {item === 'Theme colors' && <SystemConfigSummary field="uiThemePrimary" />}
+                        {item === 'Logo settings' && <SystemConfigSummary field="uiLogoLightUrl" />}
+                        {item === 'Layout preferences' && <SystemConfigSummary field="uiLayoutDensity" />}
+                        {item === 'Custom CSS' && <span className="text-xs text-gray-500">—</span>}
+                      </div>
+                    ) : (
+                      <button className="text-xs text-blue-600 hover:text-blue-800 font-medium">Configure</button>
+                    )}
+                  </div>
+                )
+              })}
             </div>
           </div>
         ))}
       </div>
+
+      {/* Modals mounted once and opened via CustomEvent from row clicks */}
+      <SystemConfigModal openEventName="open:db-configuration" />
+      <ConfigModal
+        title="UI Customization"
+        description="Update theme, branding, and layout preferences."
+        getUrl="/api/admin/settings/system-config"
+        patchUrl="/api/admin/settings/system-config"
+        eventName="settings:updated"
+        fields={uiFields}
+        openEventName="open:ui-customization"
+        renderTrigger={false}
+      />
 
       {/* Quick Actions */}
       <div className="mt-8 bg-gray-50 rounded-xl p-6">

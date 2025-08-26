@@ -21,9 +21,22 @@ export default async function CustomerLayout({ children }: { children: React.Rea
     }
   } catch {}
 
+  // Load UI theme colors from SystemConfig (server-side) with sensible defaults
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const config = await (prisma as any).systemConfig?.findUnique?.({ where: { id: 'system' } }).catch(() => null)
+  const primary = (config?.uiThemePrimary as string | undefined) || '#1E466A'
+  const accent = (config?.uiThemeAccent as string | undefined) || '#F97316'
+
   return (
     <CustomerProvider>
-  <div className="min-h-screen flex flex-col bg-gray-50 text-gray-900">
+      <div
+        className="min-h-screen flex flex-col bg-gray-50 text-gray-900"
+        style={{
+          // Expose CSS variables for theme-able colors
+          ['--color-primary' as unknown as string]: primary,
+          ['--color-accent' as unknown as string]: accent,
+        }}
+      >
         <CustomerHeader />
         <main className="flex-1 pt-2">
           {children}
