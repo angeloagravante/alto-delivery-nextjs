@@ -1,4 +1,7 @@
 import { Settings, Database, Shield, Globe, Palette, Zap } from 'lucide-react'
+import DbConnectionStatus from '@/components/admin/DbConnectionStatus'
+import SystemConfigSummary from '@/components/admin/SystemConfigSummary'
+import SystemConfigModal from '@/components/admin/SystemConfigModal'
 
 export default function AdminSettingsPage() {
   const settingSections = [
@@ -16,7 +19,7 @@ export default function AdminSettingsPage() {
       icon: Database,
       color: 'bg-green-50 text-green-700',
       iconBg: 'bg-green-100',
-      items: ['Connection status', 'Backup schedules', 'Data retention', 'Migration status']
+              items: ['Connection status', 'Backup schedules', 'Data retention']
     },
     {
       title: 'Security Settings',
@@ -76,9 +79,16 @@ export default function AdminSettingsPage() {
               {section.items.map((item, index) => (
                 <div key={index} className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg">
                   <span className="text-sm text-gray-700">{item}</span>
-                  <button className="text-xs text-blue-600 hover:text-blue-800 font-medium">
-                    Configure
-                  </button>
+                  {section.title === 'Database Configuration' ? (
+                    <div className="flex items-center gap-3">
+                      {item === 'Connection status' && <DbConnectionStatus />}
+                      {item === 'Backup schedules' && <SystemConfigSummary field="backupSchedule" />}
+                      {item === 'Data retention' && <SystemConfigSummary field="dataRetentionDays" />}
+                      {item !== 'Connection status' && <SystemConfigModal />}
+                    </div>
+                  ) : (
+                    <button className="text-xs text-blue-600 hover:text-blue-800 font-medium">Configure</button>
+                  )}
                 </div>
               ))}
             </div>

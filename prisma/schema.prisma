@@ -16,6 +16,7 @@ enum Role {
   ADMIN
 }
 
+
 model User {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   clerkId     String   @unique
@@ -101,4 +102,14 @@ model Product {
   store       Store    @relation(fields: [storeId], references: [id])
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+// Singleton document for global system configuration
+model SystemConfig {
+  id               String           @id @default("system") @map("_id")
+  backupSchedule   String?
+  dataRetentionDays Int?
+  lastBackupAt     DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
 }
