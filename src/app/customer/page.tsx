@@ -35,7 +35,7 @@ export default async function CustomerHomePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <section className="bg-[#1E466A] text-white">
+  <section className="text-white" style={{ backgroundColor: 'var(--color-primary)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-20">
           <div className="text-center">
             <h1 className="text-4xl sm:text-5xl font-bold text-white mb-6">
@@ -93,7 +93,7 @@ export default async function CustomerHomePage() {
             <p className="text-gray-600 mb-6 max-w-md mx-auto">
               We&apos;re working hard to bring local stores to your area. Check back soon!
             </p>
-            <button className="bg-[#1E466A] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#1E466A]/90 transition-colors">
+            <button className="text-white px-6 py-3 rounded-lg font-medium transition-colors" style={{ backgroundColor: 'var(--color-primary)' }}>
               Get notified when stores arrive
             </button>
           </div>
@@ -106,13 +106,13 @@ export default async function CustomerHomePage() {
                 <p className="text-gray-600">{stores.length} store{stores.length !== 1 ? 's' : ''} in your area</p>
               </div>
               <div className="flex items-center gap-3">
-                <select className="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E466A] focus:border-[#1E466A]">
+                <select className="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2" style={{ outlineColor: 'var(--color-primary)', boxShadow: '0 0 0 2px color-mix(in srgb, var(--color-primary) 30%, transparent)' }}>
                   <option>All Categories</option>
                   <option>Food & Beverages</option>
                   <option>Grocery</option>
                   <option>Pharmacy</option>
                 </select>
-                <select className="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E466A] focus:border-[#1E466A]">
+                <select className="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2" style={{ outlineColor: 'var(--color-primary)', boxShadow: '0 0 0 2px color-mix(in srgb, var(--color-primary) 30%, transparent)' }}>
                   <option>Sort by</option>
                   <option>Nearest</option>
                   <option>Rating</option>
@@ -138,8 +138,8 @@ export default async function CustomerHomePage() {
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
-                        <div className="w-12 h-12 bg-[#1E466A]/10 rounded-lg flex items-center justify-center">
-                          <svg className="w-6 h-6 text-[#1E466A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'color-mix(in srgb, var(--color-primary) 10%, transparent)' }}>
+                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--color-primary)' }}>
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                           </svg>
                         </div>
@@ -154,7 +154,7 @@ export default async function CustomerHomePage() {
                   
                   <div className="p-6">
                     <div className="flex items-start justify-between mb-2">
-                      <h3 className="font-semibold text-lg text-gray-900 group-hover:text-[#1E466A] transition-colors">
+                      <h3 className="font-semibold text-lg text-gray-900 transition-colors group-hover:[color:var(--color-primary)]">
                         {s.name}
                       </h3>
                       <div className="flex items-center gap-1">
@@ -197,8 +197,9 @@ export default async function CustomerHomePage() {
                     </div>
                     
                     <button
-                      className="w-full bg-[#1E466A] hover:bg-[#1E466A]/90 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+                      className="w-full text-white font-medium py-3 px-4 rounded-lg transition-colors"
                       type="button"
+                      style={{ backgroundColor: 'var(--color-primary)' }}
                     >
                       Browse Menu
                     </button>

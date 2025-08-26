@@ -6,6 +6,8 @@ Always reference these instructions first and fallback to search or bash command
 
 ## Working Effectively
 
+Policy: Before coding, CREATE an implementation plan and get approval.
+
 ### Initial Setup
 - Node.js v20.19.4 and npm v10.8.2 are required (already available in this environment)
 - Dependencies are automatically installed during project initialization
@@ -19,6 +21,7 @@ Always reference these instructions first and fallback to search or bash command
 - Lint code: `npm run lint` -- takes 2-3 seconds. NEVER CANCEL. Set timeout to 30+ seconds.
 
 ### Development Workflow
+0. Prepare an implementation plan and get approval before coding
 1. **ALWAYS** run `npm install` first if node_modules doesn't exist
 2. For development: `npm run dev` (uses Turbopack for fast builds)
 3. For production testing: `npm run build && npm start`
@@ -111,3 +114,5 @@ Current key dependencies (see package.json for complete list):
 - eslint: ^9
 
 **NEVER** update major versions without testing thoroughly as breaking changes are common in these tools.
+
+**CREATE** an implementation plan first then ask for approval before implementing.
